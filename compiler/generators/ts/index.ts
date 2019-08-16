@@ -1,6 +1,5 @@
 import {BaseType, CustomType, CustomTypeField, TypeTag} from '../../types';
-import {readFileSync} from "fs";
-import { resolve } from 'path';
+import { render } from 'mustache';
 
 interface NativeTypeInfo {
     name: string,
@@ -25,11 +24,17 @@ function getTypeInfo(field: CustomTypeField): NativeTypeInfo {
 }
 
 function generateInterface(type: CustomType): string {
-    let result = `export interface ${type.name} {\n`;
-    result += type.props.map(generateField).join(',\n');
-    result += '\n}';
-
-    return result;
+    const fields = type.props.map(p => ({ name: p.name, type: getTypeInfo(p).name }));
+    return render(`
+export interface {{name}} {
+    {{#fields}}
+    {{name}}: {{type}},
+    {{/fields}}
+}
+    `, {
+        name: type.name,
+        fields,
+    });
 }
 
 function capitalize() {
