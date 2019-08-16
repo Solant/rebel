@@ -1,4 +1,4 @@
-import {BaseType, CustomType, CustomTypeField, TypeTag} from './types';
+import {BaseType, BuiltInType, CustomType, CustomTypeField, TypeTag} from './types';
 import {AstNode, AstNodeType, BiMoAst, NodePosition} from './parser/ast';
 
 type DiscriminateUnion<T, K extends keyof T, V extends T[K]> = T extends Record<K, V> ? T : never;
@@ -77,9 +77,43 @@ export function transform(ast: BiMoAst): BaseType[] {
     const output: BaseType[] = [];
     const visitors: AstNodeVisitor[] = [];
 
+    interface TypeArgumentRestriction {
+        minLength?: number,
+        maxLength?: number,
+        length?: number,
+        allowedValues?: string[],
+    }
+    const restrictionsMap: Map<string, TypeArgumentRestriction[]> = new Map();
+
+    function numberTypeFactory(name: string): BuiltInType {
+        restrictionsMap.set(name, [
+            { minLength: 0, maxLength: 1, allowedValues: ['le', 'be'] }
+        ]);
+        return {
+            tag: TypeTag.BuiltIn,
+            name,
+        }
+    }
+
     // populate builtin types
-    output.push({ tag: TypeTag.BuiltIn, name: 'i32' });
+    // signed
+    output.push(numberTypeFactory('i8'));
+    output.push(numberTypeFactory('i16'));
+    output.push(numberTypeFactory('i32'));
+    output.push(numberTypeFactory('i64'));
+    // unsigned
+    output.push(numberTypeFactory('u8'));
+    output.push(numberTypeFactory('u16'));
+    output.push(numberTypeFactory('u32'));
+    output.push(numberTypeFactory('u64'));
+    // float
+    output.push(numberTypeFactory('f32'));
+    output.push(numberTypeFactory('f64'));
+
     output.push({ tag: TypeTag.BuiltIn, name: 'array' });
+    restrictionsMap.set('array', [
+        { length: 2 },
+    ]);
 
     // unique default structure
     let defaultCounter = 0;
@@ -146,6 +180,29 @@ export function transform(ast: BiMoAst): BaseType[] {
         parametrizedtype: {
             enter(node) {
                 currentFied!.args = node.typeArgs;
+            }
+        },
+    });
+
+    // parametrized type validation
+    visitors.push({
+        parametrizedtype: {
+            enter(node) {
+                const restrictions: TypeArgumentRestriction[] | undefined = restrictionsMap.get(node.typeName);
+                if (restrictions && restrictions.length) {
+                    restrictions.forEach(r => {
+                        if (r.length) {
+                            if (node.typeArgs.length !== r.length) {
+                                throw new CompileError(`Expected ${r.length} type arguments, got ${node.typeArgs.length}`, node.pos);
+                            }
+                        }
+                        if (r.maxLength) {
+                            if (node.typeArgs.length > r.maxLength) {
+                                throw new CompileError(`Expected ${r.maxLength} type argument(s) at max, got ${node.typeArgs.length}`, node.pos);
+                            }
+                        }
+                    });
+                }
             }
         },
     });
