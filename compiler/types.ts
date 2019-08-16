@@ -20,4 +20,5 @@ export type BaseType = CustomType | BuiltInType;
 export interface CustomTypeField {
     name: string,
     type: BaseType,
+    args: string[],
 }

@@ -7,3 +7,7 @@ export function compile(source: string) {
     const newAst = transform(ast);
     return generate(newAst);
 }
+
+export { transform } from './transformer';
+
+export { parse } from './parser/document';

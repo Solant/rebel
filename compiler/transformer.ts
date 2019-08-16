@@ -1,4 +1,4 @@
-import { BaseType, CustomType, TypeTag } from './types';
+import {BaseType, CustomType, CustomTypeField, TypeTag} from './types';
 import {AstNode, AstNodeType, BiMoAst, NodePosition} from './parser/ast';
 
 type DiscriminateUnion<T, K extends keyof T, V extends T[K]> = T extends Record<K, V> ? T : never;
@@ -42,6 +42,7 @@ function traverse(nodes: AstNode[], visitors: AstNodeVisitor[]) {
             }
             case AstNodeType.Field: {
                 enterNode(node, visitors);
+                traverse([node.fieldType], visitors);
                 exitNode(node, visitors);
                 break;
             }
@@ -51,6 +52,13 @@ function traverse(nodes: AstNode[], visitors: AstNodeVisitor[]) {
                 exitNode(node, visitors);
                 break;
             }
+            case AstNodeType.ParametrizedType: {
+                enterNode(node, visitors);
+                exitNode(node, visitors);
+                break;
+            }
+            default:
+                throw new CompileError(`AST node ${node.type} is not supported`);
         }
     });
 }
@@ -70,7 +78,8 @@ export function transform(ast: BiMoAst): BaseType[] {
     const visitors: AstNodeVisitor[] = [];
 
     // populate builtin types
-    output.push({ tag: TypeTag.BuiltIn, name: 'i32le' });
+    output.push({ tag: TypeTag.BuiltIn, name: 'i32' });
+    output.push({ tag: TypeTag.BuiltIn, name: 'array' });
 
     // unique default structure
     let defaultCounter = 0;
@@ -98,6 +107,7 @@ export function transform(ast: BiMoAst): BaseType[] {
 
     // register structures
     let currentStruct: CustomType | undefined  = undefined;
+    let currentFied: CustomTypeField | undefined = undefined;
     visitors.push({
         structure: {
             enter(node) {
@@ -120,15 +130,23 @@ export function transform(ast: BiMoAst): BaseType[] {
                     throw new CompileError(`Field ${node.name} was already declared`, node.pos);
                 }
 
-                const fieldType = output.find(t => t.name === node.fieldType);
+                const fieldType = output.find(t => t.name === node.fieldType.typeName);
                 if (!fieldType) {
-                    throw new CompileError(`Type ${node.fieldType} is not declared`, node.pos);
+                    throw new CompileError(`Type ${node.fieldType.typeName} is not declared`, node.pos);
                 }
-                fields.push({
+
+                currentFied = {
                     name: node.name,
                     type: fieldType,
-                });
+                    args: [],
+                };
+                fields.push(currentFied);
             },
+        },
+        parametrizedtype: {
+            enter(node) {
+                currentFied!.args = node.typeArgs;
+            }
         },
     });
 
