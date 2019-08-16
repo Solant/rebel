@@ -1,0 +1,8 @@
+.idea/
+node_modules/
+
+# some testing data files
+test.bin
+
+# default gcc binary names
+*.out
