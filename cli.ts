@@ -1,5 +1,6 @@
-const { readFileSync, existsSync } = require('fs');
-const { resolve, dirname } = require('path');
+import { readFileSync, existsSync, writeFileSync } from 'fs';
+import { resolve, dirname } from 'path';
+import { parse, transform, generate } from './compiler';
 
 const currentFolder = dirname(process.argv[1]);
 const filePath = process.argv[2];
@@ -19,5 +20,6 @@ if (!target) {
 }
 
 const fileContent = readFileSync(path, { encoding: 'UTF-8'});
-console.log(fileContent);
-console.log(target);
+
+const output = generate(transform(parse(fileContent)));
+writeFileSync(resolve(currentFolder, `output.${output.fileExtension}`), output.fileContent);

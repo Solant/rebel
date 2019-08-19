@@ -57,8 +57,18 @@ function traverse(nodes: AstNode[], visitors: AstNodeVisitor[]) {
                 exitNode(node, visitors);
                 break;
             }
-            default:
-                throw new CompileError(`AST node ${node.type} is not supported`);
+            case AstNodeType.SimpleType: {
+                enterNode(node, visitors);
+                exitNode(node, visitors);
+                break;
+            }
+            default: {
+                // switch type guard
+                const assertNever = (a: never): void => {
+                    throw new CompileError(`AST node ${(<AstNode>a).type} is not supported`);
+                };
+                assertNever(node);
+            }
         }
     });
 }

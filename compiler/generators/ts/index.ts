@@ -86,7 +86,11 @@ function isCustomType(type: BaseType): type is CustomType {
     return type.tag === TypeTag.Custom;
 }
 
-export function generate(types: BaseType[]): string {
+interface GeneratorOutput {
+    fileExtension: string,
+    fileContent: string,
+}
+export function generate(types: BaseType[]): GeneratorOutput {
     let code = '';
 
     // Inject runtime
@@ -108,5 +112,5 @@ export function generate(types: BaseType[]): string {
         .map(generateMainStructRead)
         .join('\n');
 
-    return code;
+    return { fileExtension: 'ts', fileContent: code };
 }
