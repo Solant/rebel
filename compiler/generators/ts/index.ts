@@ -1,5 +1,7 @@
 import {BaseType, CustomType, CustomTypeField, TypeTag} from '../../types';
 import { render } from 'mustache';
+import { resolve } from 'path';
+import { readFileSync } from 'fs';
 
 interface NativeTypeInfo {
     name: string,
@@ -45,31 +47,10 @@ function capitalize() {
 }
 
 function generateStructRead(type: CustomType): string {
-    const fields = type.props.map(p => ({ name: p.name, value: getTypeInfo(p).defaultValue }));
-    return render(`
-export function read{{#capitalize}}{{name}}{{/capitalize}}(): {{name}} {
-    const var1 = {
-        {{#fields}}
-        {{name}}: {{value}},
-        {{/fields}}
-    };
-    
-    return var1;
-}
-    `, {
-        name: type.name,
-        fields,
-        capitalize,
-    });
-}
-
-function generateMainStructRead(type: CustomType): string {
     const fields = type.props.map(t => ({ name: t.name, type: t.type.name, nativeType: getTypeInfo(t) }));
     return render(`
-export function read(buffer: Buffer): {{name}} {
-    const stream = new BimoStream(buffer);
-    
-    const var1 = {
+export function read{{#capitalize}}{{name}}{{/capitalize}}(stream: BimoStream): {{name}} {
+    const var1: {{name}} = {
         {{#fields}}
         {{name}}: {{nativeType.defaultValue}},
         {{/fields}}
@@ -88,6 +69,19 @@ export function read(buffer: Buffer): {{name}} {
     });
 }
 
+function generateMainStructRead(type: CustomType): string {
+    return render(`
+export function read(buffer: Buffer): {{name}} {
+    const stream = new BimoStream(buffer);
+    
+    return read{{#capitalize}}{{name}}{{/capitalize}}(stream);
+}
+    `, {
+        name: type.name,
+        capitalize,
+    });
+}
+
 function isCustomType(type: BaseType): type is CustomType {
     return type.tag === TypeTag.Custom;
 }
@@ -95,9 +89,17 @@ function isCustomType(type: BaseType): type is CustomType {
 export function generate(types: BaseType[]): string {
     let code = '';
 
+    // Inject runtime
+    code += readFileSync(resolve(__dirname, 'runtime.ts'), { encoding: 'UTF-8' });
+
     code += types
         .filter(isCustomType)
         .map(generateInterface)
+        .join('\n');
+
+    code += types
+        .filter(isCustomType)
+        .map(generateStructRead)
         .join('\n');
 
     code += types
