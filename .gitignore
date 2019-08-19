@@ -2,7 +2,13 @@
 node_modules/
 
 # some testing data files
-test.bin
+tes*.bin
+
+# tsc output
+dist/
+
+# generated files
+*-compiled*
 
 # default gcc binary names
 *.out

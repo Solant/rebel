@@ -4,22 +4,28 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "test": "jest",
     "generate-parser": "pegjs --plugin ./node_modules/ts-pegjs -o compiler/parser/document.ts compiler/parser/document.pegjs"
   },
   "bin": {
-    "bimo": "./cli.js"
+    "bimo": "./dist/cli.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/cli": "^0.11.19",
-    "@types/mustache": "^0.8.32",
-    "@types/node": "^12.7.1",
-    "cli": "^1.0.1",
     "mustache": "^3.0.1",
-    "pegjs": "^0.10.0",
+    "pegjs": "^0.10.0"
+  },
+  "devDependencies": {
+    "@types/cli": "^0.11.19",
+    "@types/jest": "^24.0.17",
+    "@types/mustache": "^0.8.32",
+    "@types/node": "^12.7.2",
+    "babel-jest": "^24.9.0",
+    "jest": "^24.9.0",
+    "ts-jest": "^24.0.2",
     "ts-node": "^8.3.0",
     "ts-pegjs": "^0.2.6",
     "typescript": "^3.5.3"
