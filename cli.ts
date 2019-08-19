@@ -1,6 +1,7 @@
 import { readFileSync, existsSync, writeFileSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { parse, transform, generate } from './compiler';
+import { getCliArg } from './cli-util';
 
 const currentFolder = dirname(process.argv[1]);
 const filePath = process.argv[2];
@@ -11,15 +12,18 @@ if (!existsSync(path)) {
     process.exit(1);
 }
 
-const target = process.argv.filter(a => a.startsWith('--target='))
-    .map(a => a.split('=')[1])[0];
+const target = getCliArg(process.argv, 'target');
 
 if (!target) {
-    console.error(`Option --target was not specified`);
-    process.exit(1);
+    throw new Error(`Option --target was not specified`);
+}
+
+let outputFileName = getCliArg(process.argv, 'output');
+if (!outputFileName) {
+    outputFileName = 'output';
 }
 
 const fileContent = readFileSync(path, { encoding: 'UTF-8'});
 
 const output = generate(transform(parse(fileContent)));
-writeFileSync(resolve(currentFolder, `output.${output.fileExtension}`), output.fileContent);
+writeFileSync(resolve(currentFolder, `${outputFileName}.${output.fileExtension}`), output.fileContent);
