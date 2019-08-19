@@ -15,8 +15,10 @@
   "license": "ISC",
   "dependencies": {
     "@types/cli": "^0.11.19",
+    "@types/mustache": "^0.8.32",
     "@types/node": "^12.7.1",
     "cli": "^1.0.1",
+    "mustache": "^3.0.1",
     "pegjs": "^0.10.0",
     "ts-node": "^8.3.0",
     "ts-pegjs": "^0.2.6",
