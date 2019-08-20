@@ -69,6 +69,35 @@ export function read{{#capitalize}}{{name}}{{/capitalize}}(stream: BimoStream): 
     });
 }
 
+function generateStructWrite(type: CustomType): string {
+    const fields = type.props.map(t => ({ name: t.name, type: t.type.name, nativeType: getTypeInfo(t) }));
+    return render(`
+export function write{{#capitalize}}{{name}}{{/capitalize}}(stream: BimoStream, value: {{#capitalize}}{{name}}{{/capitalize}}): void {
+    
+    {{#fields}}
+    stream.write{{#capitalize}}{{type}}{{/capitalize}}(value.{{name}});
+    {{/fields}}
+}
+    `, {
+        name: type.name,
+        fields,
+        capitalize,
+    });
+}
+
+function generatemainStructWrite(type: CustomType): string {
+    return render(`
+export function write(buffer: Buffer, value: {{name}}): void {
+    const stream = new BimoStream(buffer);
+    
+    return write{{#capitalize}}{{name}}{{/capitalize}}(stream, value);
+}
+    `, {
+        name: type.name,
+        capitalize,
+    });
+}
+
 function generateMainStructRead(type: CustomType): string {
     return render(`
 export function read(buffer: Buffer): {{name}} {
@@ -103,13 +132,15 @@ export function generate(types: BaseType[]): GeneratorOutput {
 
     code += types
         .filter(isCustomType)
-        .map(generateStructRead)
+        .map(t => ([generateStructRead(t), generateStructWrite(t)]))
+        .flat()
         .join('\n');
 
     code += types
         .filter(isCustomType)
         .filter(t => t.default)
-        .map(generateMainStructRead)
+        .map(t => ([generateMainStructRead(t), generatemainStructWrite(t)]))
+        .flat()
         .join('\n');
 
     return { fileExtension: 'ts', fileContent: code };
