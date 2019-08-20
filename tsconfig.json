@@ -1,8 +1,13 @@
 {
   "compilerOptions": {
     "strict": true,
+    "outDir": "./dist",
     "lib": [
       "es2019"
     ]
-  }
+  },
+  "exclude": [
+    "node_modules",
+    "tests"
+  ]
 }

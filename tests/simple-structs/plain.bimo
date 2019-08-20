@@ -1,0 +1,4 @@
+default struct Plain {
+	num1: i32;
+	num2: i32;
+}
