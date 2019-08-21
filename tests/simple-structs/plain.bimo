@@ -1,4 +1,6 @@
 default struct Plain {
-	num1: i32;
-	num2: i32;
+	num1: i8;
+	num2: u8;
+	num3: i32;
+	num4: u32;
 }
