@@ -11,20 +11,27 @@ function execPromise(command: string, cwd: string): Promise<string> {
 
 interface TestCase {
     cwd: string,
-    bimo: TestCaseSetup,
-    native: TestCaseSetup,
+    bimo: TestCaseSetup<Function>,
+    native: TestCaseSetup<string>,
 }
 
-interface TestCaseSetup {
-    prepare: string,
+interface TestCaseSetup<T> {
+    prepare: T,
     read: string,
     write: string,
 }
 
+function runOrExec(arg: string | Function, cwd: string) {
+    if (typeof arg === 'string') {
+        return execPromise(arg, cwd);
+    }
+    return Promise.resolve(arg());
+}
+
 export async function run(test: TestCase) {
     await Promise.all([
-        execPromise(test.bimo.prepare, test.cwd),
-        execPromise(test.native.prepare, test.cwd),
+        runOrExec(test.bimo.prepare, test.cwd),
+        runOrExec(test.native.prepare, test.cwd),
     ]);
 
     // prepare
