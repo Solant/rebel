@@ -1,4 +1,15 @@
 import { run } from '../utils';
+import { compile } from '../../compiler';
+import { readFileSync, writeFileSync } from 'fs';
+import { resolve } from 'path';
+
+function read(name: string) {
+    return readFileSync(resolve(__dirname, name), { encoding: 'utf-8' });
+}
+
+function write(name: string, content: string) {
+    return writeFileSync(resolve(__dirname, name), content, { encoding: 'utf-8' });
+}
 
 describe('Simple struct', function () {
     it('should read and write properly', async () => {
@@ -10,7 +21,10 @@ describe('Simple struct', function () {
                 write: './a.out write',
             },
             bimo: {
-                prepare: `npx ts-node ././../../cli.ts tests/simple-structs/plain.bimo --target=ts --output=tests/simple-structs/plain-compiled`,
+                prepare() {
+                    const source = compile(read('plain.bimo'));
+                    write('plain-compiled.ts', source.fileContent);
+                },
                 read: 'npx ts-node read.ts read',
                 write: 'npx ts-node read.ts write',
             }

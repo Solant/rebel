@@ -1,7 +1,6 @@
 import {BaseType, CustomType, CustomTypeField, TypeTag} from '../../types';
 import { render } from 'mustache';
-import { resolve } from 'path';
-import { readFileSync } from 'fs';
+import { injectedCode } from "./runtime";
 
 interface NativeTypeInfo {
     name: string,
@@ -15,7 +14,15 @@ class CodeGenError extends Error {
 }
 
 const nativeTypeMap: Map<string, NativeTypeInfo> = new Map();
+nativeTypeMap.set('i8', { name: 'number', defaultValue: 0 });
+nativeTypeMap.set('i16', { name: 'number', defaultValue: 0 });
 nativeTypeMap.set('i32', { name: 'number', defaultValue: 0 });
+nativeTypeMap.set('i64', { name: 'number', defaultValue: 0 });
+
+nativeTypeMap.set('u8', { name: 'number', defaultValue: 0 });
+nativeTypeMap.set('u16', { name: 'number', defaultValue: 0 });
+nativeTypeMap.set('u32', { name: 'number', defaultValue: 0 });
+nativeTypeMap.set('u64', { name: 'number', defaultValue: 0 });
 
 function getTypeInfo(field: CustomTypeField): NativeTypeInfo {
     const res = nativeTypeMap.get(field.type.name);
@@ -123,7 +130,7 @@ export function generate(types: BaseType[]): GeneratorOutput {
     let code = '';
 
     // Inject runtime
-    code += readFileSync(resolve(__dirname, 'runtime.ts'), { encoding: 'UTF-8' });
+    code += injectedCode();
 
     code += types
         .filter(isCustomType)
