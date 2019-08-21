@@ -1,6 +1,6 @@
-import {BaseType, CustomType, CustomTypeField, TypeTag} from '../../types';
+import {BaseType, CustomType, CustomTypeField, isCustomType, TypeTag} from '../../types';
 import { render } from 'mustache';
-import { injectedCode } from "./runtime";
+import {injectedCode} from "./runtime";
 
 interface NativeTypeInfo {
     name: string,
@@ -24,70 +24,63 @@ nativeTypeMap.set('u16', { name: 'number', defaultValue: 0 });
 nativeTypeMap.set('u32', { name: 'number', defaultValue: 0 });
 nativeTypeMap.set('u64', { name: 'number', defaultValue: 0 });
 
-function getTypeInfo(field: CustomTypeField): NativeTypeInfo {
-    const res = nativeTypeMap.get(field.type.name);
-    if (!res) {
-        throw new CodeGenError(`Unsupported type ${field.type.name}`);
-    }
-    return res;
-}
-
 function generateInterface(type: CustomType): string {
-    const fields = type.props.map(p => ({ name: p.name, type: getTypeInfo(p).name }));
     return render(`
 export interface {{name}} {
     {{#fields}}
-    {{name}}: {{type}},
+    {{{.}}},
     {{/fields}}
 }
     `, {
         name: type.name,
-        fields,
+        fields: type.props.map(fieldDeclaration),
     });
 }
 
 function capitalize() {
     return function (text: string, render: Function): string {
-        let val = render(text);
-        return val.charAt(0).toUpperCase() + val.slice(1);
+        return capitalizeNative(render(text));
     }
 }
 
+function capitalizeNative(text: string): string {
+    return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
 function generateStructRead(type: CustomType): string {
-    const fields = type.props.map(t => ({ name: t.name, type: t.type.name, nativeType: getTypeInfo(t) }));
     return render(`
 export function read{{#capitalize}}{{name}}{{/capitalize}}(stream: BimoStream): {{name}} {
     const var1: {{name}} = {
-        {{#fields}}
-        {{name}}: {{nativeType.defaultValue}},
-        {{/fields}}
+        {{#definitions}}
+        {{{.}}},
+        {{/definitions}}
     };
     
-    {{#fields}}
-    var1.{{name}} = stream.read{{#capitalize}}{{type}}{{/capitalize}}();
-    {{/fields}}
+    {{#reads}}
+    {{{.}}};
+    {{/reads}}
     
     return var1;
 }
     `, {
         name: type.name,
-        fields,
+        definitions: type.props.map(fieldDefaultDefenition),
+        reads: type.props.map(p => fieldRead('var1', p)),
         capitalize,
     });
 }
 
 function generateStructWrite(type: CustomType): string {
-    const fields = type.props.map(t => ({ name: t.name, type: t.type.name, nativeType: getTypeInfo(t) }));
     return render(`
 export function write{{#capitalize}}{{name}}{{/capitalize}}(stream: BimoStream, value: {{#capitalize}}{{name}}{{/capitalize}}): void {
     
-    {{#fields}}
-    stream.write{{#capitalize}}{{type}}{{/capitalize}}(value.{{name}});
-    {{/fields}}
+    {{#writes}}
+    {{{.}}};
+    {{/writes}}
 }
     `, {
         name: type.name,
-        fields,
+        writes: type.props.map(p => fieldWrite('value', p)),
         capitalize,
     });
 }
@@ -116,10 +109,6 @@ export function read(buffer: Buffer): {{name}} {
         name: type.name,
         capitalize,
     });
-}
-
-function isCustomType(type: BaseType): type is CustomType {
-    return type.tag === TypeTag.Custom;
 }
 
 interface GeneratorOutput {
@@ -151,4 +140,73 @@ export function generate(types: BaseType[]): GeneratorOutput {
         .join('\n');
 
     return { fileExtension: 'ts', fileContent: code };
+}
+
+/**
+ * Generate structure field declaration
+ * @param field
+ */
+export function fieldDeclaration(field: CustomTypeField) {
+    switch (field.type.tag) {
+        case TypeTag.BuiltIn: {
+            const nativeType = nativeTypeMap.get(field.type.name);
+            if (!nativeType) {
+                throw new CodeGenError(`Unsupported type ${field.type.name}`);
+            }
+            return `${field.name}: ${nativeType.name}`;
+        }
+        case TypeTag.Custom: {
+            return `${field.name}: ${field.type.name}`;
+        }
+    }
+}
+
+/**
+ * Generate structure field default value
+ * @param field
+ */
+function fieldDefaultDefenition(field: CustomTypeField) {
+    switch (field.type.tag) {
+        case TypeTag.BuiltIn: {
+            const nativeType = nativeTypeMap.get(field.type.name);
+            if (!nativeType) {
+                throw new CodeGenError(`Unsupported type ${field.type.name}`);
+            }
+            return `${field.name}: ${nativeType.defaultValue}`;
+        }
+        case TypeTag.Custom: {
+            return `// @ts-ignore
+            ${field.name}: {}`;
+        }
+    }
+}
+
+function fieldRead(parent: string, field: CustomTypeField) {
+    switch (field.type.tag) {
+        case TypeTag.BuiltIn: {
+            const nativeType = nativeTypeMap.get(field.type.name);
+            if (!nativeType) {
+                throw new CodeGenError(`Unsupported type ${field.type.name}`);
+            }
+            return `${parent}.${field.name} = stream.read${capitalizeNative(field.type.name)}()`;
+        }
+        case TypeTag.Custom: {
+            return `${parent}.${field.name} = read${capitalizeNative(field.type.name)}(stream)`;
+        }
+    }
+}
+
+function fieldWrite(parent: string, field: CustomTypeField) {
+    switch (field.type.tag) {
+        case TypeTag.BuiltIn: {
+            const nativeType = nativeTypeMap.get(field.type.name);
+            if (!nativeType) {
+                throw new CodeGenError(`Unsupported type ${field.type.name}`);
+            }
+            return `stream.write${capitalizeNative(field.type.name)}(${parent}.${field.name})`;
+        }
+        case TypeTag.Custom: {
+            return `write${capitalizeNative(field.type.name)}(stream, ${parent}.${field.name})`;
+        }
+    }
 }

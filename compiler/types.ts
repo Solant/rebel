@@ -8,6 +8,10 @@ export interface BuiltInType {
     name: string,
 }
 
+export function isCustomType(t: BaseType): t is CustomType {
+    return t.tag === TypeTag.Custom;
+}
+
 export interface CustomType {
     tag: TypeTag.Custom,
     default: boolean,

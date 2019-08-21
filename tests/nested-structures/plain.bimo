@@ -1,0 +1,10 @@
+struct Child {
+	num2: u8;
+	num3: i32;
+	num4: u32;
+}
+
+default struct Plain {
+	num1: i8;
+	child: Child;
+}
