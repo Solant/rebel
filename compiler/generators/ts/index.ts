@@ -1,4 +1,4 @@
-import {BaseType, CustomType, CustomTypeField, isCustomType, TypeTag} from '../../types';
+import {BaseType, CustomType, Field, isCustomType, TypeTag} from '../../types';
 import { render } from 'mustache';
 import {injectedCode} from "./runtime";
 
@@ -146,7 +146,7 @@ export function generate(types: BaseType[]): GeneratorOutput {
  * Generate structure field declaration
  * @param field
  */
-export function fieldDeclaration(field: CustomTypeField) {
+export function fieldDeclaration(field: Field) {
     switch (field.type.tag) {
         case TypeTag.BuiltIn: {
             const nativeType = nativeTypeMap.get(field.type.name);
@@ -165,7 +165,7 @@ export function fieldDeclaration(field: CustomTypeField) {
  * Generate structure field default value
  * @param field
  */
-function fieldDefaultDefenition(field: CustomTypeField) {
+function fieldDefaultDefenition(field: Field) {
     switch (field.type.tag) {
         case TypeTag.BuiltIn: {
             const nativeType = nativeTypeMap.get(field.type.name);
@@ -181,7 +181,7 @@ function fieldDefaultDefenition(field: CustomTypeField) {
     }
 }
 
-function fieldRead(parent: string, field: CustomTypeField) {
+function fieldRead(parent: string, field: Field) {
     switch (field.type.tag) {
         case TypeTag.BuiltIn: {
             const nativeType = nativeTypeMap.get(field.type.name);
@@ -196,7 +196,7 @@ function fieldRead(parent: string, field: CustomTypeField) {
     }
 }
 
-function fieldWrite(parent: string, field: CustomTypeField) {
+function fieldWrite(parent: string, field: Field) {
     switch (field.type.tag) {
         case TypeTag.BuiltIn: {
             const nativeType = nativeTypeMap.get(field.type.name);

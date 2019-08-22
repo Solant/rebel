@@ -44,9 +44,9 @@ NumberLiteral = [0-9]+ {
     };
 }
 
-StringLiteral = [a-zA-Z0-9]+ {
+EndiannessLiteral = val:('le' / 'be') {
 	return {
-    	type: 'string',
+    	type: 'endianness',
     	pos: location().start,
 		value: text(),
     }
@@ -60,7 +60,7 @@ FieldRef = '#' fieldName:[a-zA-Z0-9]+ {
     };
 }
 
-PossibleTypeArgs = FieldRef / ParametrizedType / NumberLiteral / StringLiteral
+PossibleTypeArgs = FieldRef / ParametrizedType / NumberLiteral / EndiannessLiteral
 
 TypeArg = _ arg:PossibleTypeArgs ','? _ {
 	return arg;
