@@ -8,6 +8,7 @@ import {
     SimpleFieldTypeAstNode
 } from './parser/ast';
 import {isTypeName} from "./builtInTypes";
+import { assertNever } from './switch-guard';
 
 type DiscriminateUnion<T, K extends keyof T, V extends T[K]> = T extends Record<K, V> ? T : never;
 
@@ -88,12 +89,6 @@ function traverse(nodes: AstNode[], visitors: AstNodeVisitor[], path: AstNode[])
                 break;
             }
             default: {
-                // switch type guard
-                const assertNever = (a: never): void => {
-                    console.log(node);
-                    console.trace();
-                    throw new CompileError(`AST node ${(<AstNode>a).type} is not supported`);
-                };
                 assertNever(node);
             }
         }
@@ -271,6 +266,7 @@ export function transform(ast: BiMoAst): BaseType[] {
             enter(node) {
                 const type = types.head();
                 if (isBuiltInType(type)) {
+                    // TODO: add compile error
                     type.typeArgs.lengthOf = node.fieldName;
                     structs.head().props.find(p => p.name === node.fieldName)!.access = 'private';
                 }

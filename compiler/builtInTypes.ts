@@ -1,4 +1,4 @@
-enum Type {
+export enum Type {
     i8 = 'i8',
     i16 = 'i16',
     i32 = 'i32',

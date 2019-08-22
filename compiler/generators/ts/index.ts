@@ -1,6 +1,10 @@
-import {BaseType, CustomType, Field, isCustomType, TypeTag} from '../../types';
+import { BaseType, BuiltInType, CustomType, Field, isBuiltInType, isCustomType, TypeTag } from '../../types';
 import { render } from 'mustache';
-import {injectedCode} from "./runtime";
+import { injectedCode } from './runtime';
+import { assertNever } from '../../switch-guard';
+import { ok } from 'assert';
+import { Type } from '../../builtInTypes';
+import { isNullOrUndefined } from 'util';
 
 interface NativeTypeInfo {
     name: string,
@@ -33,7 +37,7 @@ export interface {{name}} {
 }
     `, {
         name: type.name,
-        fields: type.props.map(fieldDeclaration),
+        fields: type.props.map(fieldDeclaration).filter(Boolean),
     });
 }
 
@@ -57,14 +61,14 @@ export function read{{#capitalize}}{{name}}{{/capitalize}}(stream: BimoStream): 
     };
     
     {{#reads}}
-    {{{.}}};
+    {{{.}}}
     {{/reads}}
     
     return var1;
 }
     `, {
         name: type.name,
-        definitions: type.props.map(fieldDefaultDefenition),
+        definitions: type.props.map(fieldDefaultDefenition).filter(Boolean),
         reads: type.props.map(p => fieldRead('var1', p)),
         capitalize,
     });
@@ -75,12 +79,12 @@ function generateStructWrite(type: CustomType): string {
 export function write{{#capitalize}}{{name}}{{/capitalize}}(stream: BimoStream, value: {{#capitalize}}{{name}}{{/capitalize}}): void {
     
     {{#writes}}
-    {{{.}}};
+    {{{.}}}
     {{/writes}}
 }
     `, {
         name: type.name,
-        writes: type.props.map(p => fieldWrite('value', p)),
+        writes: type.props.map(p => fieldWrite('value', p, type)),
         capitalize,
     });
 }
@@ -146,18 +150,9 @@ export function generate(types: BaseType[]): GeneratorOutput {
  * Generate structure field declaration
  * @param field
  */
-export function fieldDeclaration(field: Field) {
-    switch (field.type.tag) {
-        case TypeTag.BuiltIn: {
-            const nativeType = nativeTypeMap.get(field.type.name);
-            if (!nativeType) {
-                throw new CodeGenError(`Unsupported type ${field.type.name}`);
-            }
-            return `${field.name}: ${nativeType.name}`;
-        }
-        case TypeTag.Custom: {
-            return `${field.name}: ${field.type.name}`;
-        }
+export function fieldDeclaration(field: Field): string | undefined {
+    if (field.access === 'public') {
+        return `${field.name}: ${typeDeclaration(field.type)}`;
     }
 }
 
@@ -165,48 +160,126 @@ export function fieldDeclaration(field: Field) {
  * Generate structure field default value
  * @param field
  */
-function fieldDefaultDefenition(field: Field) {
+function fieldDefaultDefenition(field: Field): string | undefined {
+    if (field.access === 'private') {
+        return undefined;
+    }
     switch (field.type.tag) {
         case TypeTag.BuiltIn: {
-            const nativeType = nativeTypeMap.get(field.type.name);
-            if (!nativeType) {
-                throw new CodeGenError(`Unsupported type ${field.type.name}`);
-            }
-            return `${field.name}: ${nativeType.defaultValue}`;
+            return `${field.name}: ${defaultTypeValue(field.type)}`;
         }
         case TypeTag.Custom: {
             return `// @ts-ignore
-            ${field.name}: {}`;
+            ${field.name}: ${defaultTypeValue(field.type)}`;
         }
     }
 }
 
-function fieldRead(parent: string, field: Field) {
-    switch (field.type.tag) {
-        case TypeTag.BuiltIn: {
-            const nativeType = nativeTypeMap.get(field.type.name);
-            if (!nativeType) {
-                throw new CodeGenError(`Unsupported type ${field.type.name}`);
+function fieldRead(parent: string, field: Field): string {
+    let result = '';
+
+    if (isBuiltInType(field.type) && field.type.name === 'array') {
+        result += `
+    for (let i = 0; i < ${field.type.typeArgs.lengthOf}; i++) {
+        ${parent}.${field.name}.push(${typeIOFunction(field.type.typeArgs.type!, 'read')}(stream));
+    }
+`;
+    } else {
+        if (field.access === 'private') {
+            result += `const ${field.name} = `
+        } else {
+            result += `${parent}.${field.name}`
+        }
+        result += `${typeIOFunction(field.type, 'read')}(stream)`;
+    }
+    return result;
+}
+
+function fieldWrite(parent: string, field: Field, type: CustomType): string {
+    let result = '';
+    if (isBuiltInType(field.type) && field.type.name === 'array') {
+        result +=
+`
+    for (let i = 0; i < ${field.type.typeArgs.lengthOf}; i++) {
+        ${typeIOFunction(field.type.typeArgs.type!, 'write')}(stream, ${parent}.${field.name}[i]);
+    }
+`;
+    } else {
+        if (field.access === 'private') {
+            let a = type.props.find(f => (<BuiltInType>f.type).typeArgs.lengthOf === field.name);
+            result += `${typeIOFunction(field.type, 'write')}(stream, ${parent}.${a!.name}.length)`;
+        } else {
+            result += `${typeIOFunction(field.type, 'write')}(stream, ${parent}.${field.name})`;
+        }
+    }
+    return result;
+}
+
+function typeDeclaration(type: BaseType): string {
+    if (isBuiltInType(type)) {
+        switch (type.name) {
+            case 'i8':
+            case 'i16':
+            case 'i32':
+            case 'i64':
+            case 'u8':
+            case 'u16':
+            case 'u32':
+            case 'u64': {
+                return 'number';
             }
-            return `${parent}.${field.name} = stream.read${capitalizeNative(field.type.name)}()`;
+            case 'array': {
+                const childType = type.typeArgs.type!;
+                ok(childType);
+                return `Array<${typeDeclaration(childType)}>`;
+            }
+            default: {
+                assertNever(type.name);
+                return '';
+            }
         }
-        case TypeTag.Custom: {
-            return `${parent}.${field.name} = read${capitalizeNative(field.type.name)}(stream)`;
-        }
+    } else {
+        return `${type.name}`
     }
 }
 
-function fieldWrite(parent: string, field: Field) {
-    switch (field.type.tag) {
-        case TypeTag.BuiltIn: {
-            const nativeType = nativeTypeMap.get(field.type.name);
-            if (!nativeType) {
-                throw new CodeGenError(`Unsupported type ${field.type.name}`);
+function defaultTypeValue(type: BaseType): string {
+    if (isBuiltInType(type)) {
+        switch (type.name) {
+            case 'i8':
+            case 'i16':
+            case 'i32':
+            case 'i64':
+            case 'u8':
+            case 'u16':
+            case 'u32':
+            case 'u64': {
+                return '0';
             }
-            return `stream.write${capitalizeNative(field.type.name)}(${parent}.${field.name})`;
+            case 'array': {
+                const childType = type.typeArgs.type!;
+                ok(childType);
+                return '[]';
+            }
+            default: {
+                assertNever(type.name);
+                return '';
+            }
         }
-        case TypeTag.Custom: {
-            return `write${capitalizeNative(field.type.name)}(stream, ${parent}.${field.name})`;
+    } else {
+        return 'undefined';
+    }
+}
+
+type IO = 'read' | 'write';
+function typeIOFunction(type: BaseType, flag: IO): string {
+    if (isBuiltInType(type)) {
+        if (type.name === 'array') {
+            throw new TypeError('Array is not supported');
+        } else {
+            return `stream.${flag}${capitalizeNative(type.name)}`
         }
+    } else {
+        return `${flag}${capitalizeNative(type.name)}`
     }
 }

@@ -16,7 +16,8 @@ default struct Array {
 }
 `);
 const b = transform(a);
-console.log(inspect(b, { depth: Infinity }));
+const c = generate(b);
+console.log(c.fileContent);
 
 export { transform } from './transformer';
 export { generate } from './generators/ts';
