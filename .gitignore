@@ -2,6 +2,8 @@
 node_modules/
 coverage/
 
+compiler/parser/document.ts
+
 # some testing data files
 tes*.bin
 

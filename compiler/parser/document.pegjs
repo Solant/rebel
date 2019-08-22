@@ -36,8 +36,34 @@ SimpleType = typeName:TypeName {
     };
 }
 
-TypeArg = _ name:[a-zA-Z0-9]+ ','? _ {
-	return name.join('');
+NumberLiteral = [0-9]+ {
+	return {
+	    type: 'number',
+	    pos: location().start,
+	    value: parseInt(text())
+    };
+}
+
+StringLiteral = [a-zA-Z0-9]+ {
+	return {
+    	type: 'string',
+    	pos: location().start,
+		value: text(),
+    }
+}
+
+FieldRef = '#' fieldName:[a-zA-Z0-9]+ {
+	return {
+	    type: 'fieldref',
+	    pos: location().start,
+	    fieldName: fieldName.join(''),
+    };
+}
+
+PossibleTypeArgs = FieldRef / ParametrizedType / NumberLiteral / StringLiteral
+
+TypeArg = _ arg:PossibleTypeArgs ','? _ {
+	return arg;
 }
 
 ParametrizedType = typeName:TypeName '<' args:TypeArg+ '>' {
