@@ -188,9 +188,13 @@ function fieldRead(parent: string, field: Field): string {
         if (field.access === 'private') {
             result += `const ${field.name} = `
         } else {
-            result += `${parent}.${field.name}`
+            result += `${parent}.${field.name} = `
         }
-        result += `${typeIOFunction(field.type, 'read')}()`;
+        if (isCustomType(field.type)) {
+            result += `${typeIOFunction(field.type, 'read')}(stream)`;
+        } else {
+            result += `${typeIOFunction(field.type, 'read')}()`;
+        }
     }
     return result;
 }
@@ -209,7 +213,11 @@ function fieldWrite(parent: string, field: Field, type: CustomType): string {
             let a = type.props.find(f => (<BuiltInType>f.type).typeArgs.lengthOf === field.name);
             result += `${typeIOFunction(field.type, 'write')}(${parent}.${a!.name}.length)`;
         } else {
-            result += `${typeIOFunction(field.type, 'write')}(${parent}.${field.name})`;
+            if (isCustomType(field.type)) {
+                result += `${typeIOFunction(field.type, 'write')}(stream, ${parent}.${field.name})`;
+            } else {
+                result += `${typeIOFunction(field.type, 'write')}(${parent}.${field.name})`;
+            }
         }
     }
     return result;
