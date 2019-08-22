@@ -181,7 +181,7 @@ function fieldRead(parent: string, field: Field): string {
     if (isBuiltInType(field.type) && field.type.name === 'array') {
         result += `
     for (let i = 0; i < ${field.type.typeArgs.lengthOf}; i++) {
-        ${parent}.${field.name}.push(${typeIOFunction(field.type.typeArgs.type!, 'read')}(stream));
+        ${parent}.${field.name}.push(${typeIOFunction(field.type.typeArgs.type!, 'read')}());
     }
 `;
     } else {
@@ -190,7 +190,7 @@ function fieldRead(parent: string, field: Field): string {
         } else {
             result += `${parent}.${field.name}`
         }
-        result += `${typeIOFunction(field.type, 'read')}(stream)`;
+        result += `${typeIOFunction(field.type, 'read')}()`;
     }
     return result;
 }
@@ -200,16 +200,16 @@ function fieldWrite(parent: string, field: Field, type: CustomType): string {
     if (isBuiltInType(field.type) && field.type.name === 'array') {
         result +=
 `
-    for (let i = 0; i < ${field.type.typeArgs.lengthOf}; i++) {
-        ${typeIOFunction(field.type.typeArgs.type!, 'write')}(stream, ${parent}.${field.name}[i]);
+    for (let i = 0; i < ${parent}.${field.name}.length; i++) {
+        ${typeIOFunction(field.type.typeArgs.type!, 'write')}(${parent}.${field.name}[i]);
     }
 `;
     } else {
         if (field.access === 'private') {
             let a = type.props.find(f => (<BuiltInType>f.type).typeArgs.lengthOf === field.name);
-            result += `${typeIOFunction(field.type, 'write')}(stream, ${parent}.${a!.name}.length)`;
+            result += `${typeIOFunction(field.type, 'write')}(${parent}.${a!.name}.length)`;
         } else {
-            result += `${typeIOFunction(field.type, 'write')}(stream, ${parent}.${field.name})`;
+            result += `${typeIOFunction(field.type, 'write')}(${parent}.${field.name})`;
         }
     }
     return result;
@@ -231,7 +231,7 @@ function typeDeclaration(type: BaseType): string {
             case 'array': {
                 const childType = type.typeArgs.type!;
                 ok(childType);
-                return `Array<${typeDeclaration(childType)}>`;
+                return `${typeDeclaration(childType)}[]`;
             }
             default: {
                 assertNever(type.name);
