@@ -1,0 +1,4 @@
+default struct ArrayStruct {
+    size: i32;
+    data: array<i32<le>, 10>;
+}

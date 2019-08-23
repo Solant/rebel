@@ -1,85 +1,112 @@
-import {BaseType, BuiltInType, CustomType, CustomTypeField, TypeTag} from './types';
-import {AstNode, AstNodeType, BiMoAst, NodePosition} from './parser/ast';
+import {BaseType, CustomType, Field, isBuiltInArray, isBuiltInType, TypeTag} from './types';
+import {
+    AstNode,
+    AstNodeType,
+    BiMoAst,
+    NodePosition,
+    ParamFieldTypeAstNode,
+    SimpleFieldTypeAstNode
+} from './parser/ast';
+import {isTypeName} from "./builtInTypes";
+import { assertNever } from './switch-guard';
 
 type DiscriminateUnion<T, K extends keyof T, V extends T[K]> = T extends Record<K, V> ? T : never;
 
 interface EnterExitVisitor<T> {
-    enter?: (node: T) => any,
-    exit?: (node: T) => any,
+    enter?: (node: T, path: AstNode[]) => any,
+    exit?: (node: T, path: AstNode[]) => any,
 }
 type AstNodeVisitor = { [key in AstNodeType]?: EnterExitVisitor<DiscriminateUnion<AstNode, 'type', key>> };
 
-function enterNode<T extends AstNode>(node: T, visitors: AstNodeVisitor[]) {
+function enterNode<T extends AstNode>(node: T, visitors: AstNodeVisitor[], path: AstNode[]) {
     for (let visitor of visitors) {
         // TODO: fix type casting
         // @ts-ignore
         const callback: EnterExitVisitor<T> = visitor[node.type];
         if (callback && callback.enter) {
-            callback.enter(node);
+            callback.enter(node, path);
         }
     }
 }
 
-function exitNode(node: AstNode, visitors: AstNodeVisitor[]) {
+function exitNode(node: AstNode, visitors: AstNodeVisitor[], path: AstNode[]) {
     for (let visitor of visitors) {
         // TODO: fix type casting
         // @ts-ignore
         const callback: EnterExitVisitor<T> = visitor[node.type];
         if (callback && callback.exit) {
-            callback.exit(node);
+            callback.exit(node, path);
         }
     }
 }
 
-function traverse(nodes: AstNode[], visitors: AstNodeVisitor[]) {
+function traverse(nodes: AstNode[], visitors: AstNodeVisitor[], path: AstNode[]) {
     nodes.forEach((node) => {
+        const currentPath = [...path, node];
         switch (node.type) {
             case AstNodeType.Structure: {
-                enterNode(node, visitors);
-                traverse(node.fields, visitors);
-                exitNode(node, visitors);
+                enterNode(node, visitors, currentPath);
+                traverse(node.fields, visitors, currentPath);
+                exitNode(node, visitors, currentPath);
                 break;
             }
             case AstNodeType.Field: {
-                enterNode(node, visitors);
-                traverse([node.fieldType], visitors);
-                exitNode(node, visitors);
+                enterNode(node, visitors, currentPath);
+                traverse([node.fieldType], visitors, currentPath);
+                exitNode(node, visitors, currentPath);
                 break;
             }
             case AstNodeType.Document: {
-                enterNode(node, visitors);
-                traverse(node.structures, visitors);
-                exitNode(node, visitors);
+                enterNode(node, visitors, currentPath);
+                traverse(node.structures, visitors, currentPath);
+                exitNode(node, visitors, currentPath);
                 break;
             }
             case AstNodeType.ParametrizedType: {
-                enterNode(node, visitors);
-                exitNode(node, visitors);
+                enterNode(node, visitors, currentPath);
+                traverse(node.typeArgs, visitors, currentPath);
+                exitNode(node, visitors, currentPath);
                 break;
             }
             case AstNodeType.SimpleType: {
-                enterNode(node, visitors);
-                exitNode(node, visitors);
+                enterNode(node, visitors, currentPath);
+                exitNode(node, visitors, currentPath);
+                break;
+            }
+            case AstNodeType.FieldRef: {
+                enterNode(node, visitors, currentPath);
+                exitNode(node, visitors, currentPath);
+                break;
+            }
+            case AstNodeType.Number: {
+                enterNode(node, visitors, currentPath);
+                exitNode(node, visitors, currentPath);
+                break;
+            }
+            case AstNodeType.Endianness: {
+                enterNode(node, visitors, currentPath);
+                exitNode(node, visitors, currentPath);
                 break;
             }
             default: {
-                // switch type guard
-                const assertNever = (a: never): void => {
-                    throw new CompileError(`AST node ${(<AstNode>a).type} is not supported`);
-                };
                 assertNever(node);
             }
         }
     });
 }
 
-class CompileError extends Error {
+export class CompileError extends Error {
+    position?: { line: number, column: number };
     constructor(m: string, pos?: { line: number, column: number }) {
         if (pos) {
             super(`Compilation error at input:${pos.line}:${pos.column}\n${m}`)
         } else {
             super(m);
         }
+        // https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
+        Object.setPrototypeOf(this, CompileError.prototype);
+        this.name = 'CompileError';
+        this.position = pos;
     }
 }
 
@@ -87,137 +114,182 @@ export function transform(ast: BiMoAst): BaseType[] {
     const output: BaseType[] = [];
     const visitors: AstNodeVisitor[] = [];
 
-    interface TypeArgumentRestriction {
-        minLength?: number,
-        maxLength?: number,
-        length?: number,
-        allowedValues?: string[],
-    }
-    const restrictionsMap: Map<string, TypeArgumentRestriction[]> = new Map();
-
-    function numberTypeFactory(name: string): BuiltInType {
-        restrictionsMap.set(name, [
-            { minLength: 0, maxLength: 1, allowedValues: ['le', 'be'] }
-        ]);
-        return {
-            tag: TypeTag.BuiltIn,
-            name,
-        }
-    }
-
-    // populate builtin types
-    // signed
-    output.push(numberTypeFactory('i8'));
-    output.push(numberTypeFactory('i16'));
-    output.push(numberTypeFactory('i32'));
-    output.push(numberTypeFactory('i64'));
-    // unsigned
-    output.push(numberTypeFactory('u8'));
-    output.push(numberTypeFactory('u16'));
-    output.push(numberTypeFactory('u32'));
-    output.push(numberTypeFactory('u64'));
-    // float
-    output.push(numberTypeFactory('f32'));
-    output.push(numberTypeFactory('f64'));
-
-    output.push({ tag: TypeTag.BuiltIn, name: 'array' });
-    restrictionsMap.set('array', [
-        { length: 2 },
-    ]);
-
     // unique default structure
-    let defaultCounter = 0;
-    let defaultPos: NodePosition | undefined = undefined;
-    visitors.push({
-        structure: {
-            enter(node) {
-                if (node.default) {
-                    if (defaultCounter) {
-                        throw new CompileError(`Default structure already defined at ${defaultPos}`, node.pos);
+    (function () {
+        let defaultCounter = 0;
+        let defaultPos: NodePosition | undefined = undefined;
+        visitors.push({
+            structure: {
+                enter(node) {
+                    if (node.default) {
+                        if (defaultCounter) {
+                            throw new CompileError(`Default structure already defined at ${defaultPos}`, node.pos);
+                        }
+                        defaultCounter++;
+                        defaultPos = node.pos;
                     }
-                    defaultCounter++;
-                    defaultPos = node.pos;
+                }
+            },
+            document: {
+                exit() {
+                    if (defaultCounter === 0) {
+                        throw new CompileError(`No default structure found in the document`);
+                    }
                 }
             }
-        },
-        document: {
-            exit() {
-                if (defaultCounter === 0) {
-                    throw new CompileError(`No default structure found in the document`);
-                }
-            }
+        });
+    })();
+
+    class Stack<T> {
+        data: T[];
+        constructor() {
+            this.data = [];
         }
-    });
+        push(a: T) {
+            this.data.push(a);
+        }
+        pop(): T {
+            return this.data.pop()!;
+        }
+        head(): T {
+            return this.data[this.data.length - 1];
+        }
+    }
 
     // register structures
-    let currentStruct: CustomType | undefined  = undefined;
-    let currentFied: CustomTypeField | undefined = undefined;
+    const structs = new Stack<CustomType>();
+    const fields = new Stack<Field>();
+    const types = new Stack<BaseType>();
+
+    function pickBaseType(node: SimpleFieldTypeAstNode | ParamFieldTypeAstNode): BaseType {
+        const name = node.typeName;
+        if (isTypeName(name)) {
+            return {
+                tag: TypeTag.BuiltIn,
+                name: name,
+                typeArgs: [],
+            };
+        } else if (output.find(t => t.name === name)) {
+            return output.find(t => t.name === name)!;
+        } else {
+            throw new CompileError(`Type ${name} is not declared`, node.pos);
+        }
+    }
+
     visitors.push({
         structure: {
             enter(node) {
                 if (output.findIndex(t => t.name === node.name) !== -1) {
                     throw new CompileError(`Type ${node.name} was already declared`, node.pos);
                 }
-                currentStruct = {
+                structs.push({
                     tag: TypeTag.Custom,
                     default: node.default,
                     name: node.name,
                     props: [],
-                };
-                output.push(currentStruct);
+                });
+                output.push(structs.head());
+            },
+            exit() {
+                structs.pop();
             }
         },
         field: {
             enter(node) {
-                const fields = currentStruct!.props;
-                if (fields.findIndex(f => f.name === node.name) !== -1) {
+                const existingFields = structs.head().props;
+                if (existingFields.findIndex(f => f.name === node.name) !== -1) {
                     throw new CompileError(`Field ${node.name} was already declared`, node.pos);
                 }
-
-                const fieldType = output.find(t => t.name === node.fieldType.typeName);
-                if (!fieldType) {
-                    throw new CompileError(`Type ${node.fieldType.typeName} is not declared`, node.pos);
-                }
-
-                currentFied = {
+                fields.push({
                     name: node.name,
-                    type: fieldType,
-                    args: [],
-                };
-                fields.push(currentFied);
+                    access: 'public',
+                    // @ts-ignore
+                    type: {},
+                });
+                existingFields.push(fields.head());
+            },
+            exit() {
+                fields.pop();
+            }
+        },
+        simpletype: {
+            enter(node, path) {
+                switch (path[path.length - 2].type) {
+                    case AstNodeType.Field:
+                        fields.head().type = pickBaseType(node);
+                        break;
+                    case AstNodeType.ParametrizedType: {
+                        const type = types.head();
+                        if (isBuiltInType(type)) {
+                            type.typeArgs.type = pickBaseType(node);
+                        } else {
+                            throw new CompileError('Custom types can\'t have type params', node.pos);
+                        }
+                    }
+                }
             },
         },
         parametrizedtype: {
+            enter(node, path) {
+                const t = pickBaseType(node);
+                switch (path[path.length - 2].type) {
+                    case AstNodeType.Field:
+                        fields.head().type = t;
+                        break;
+                    case AstNodeType.ParametrizedType: {
+                        const type = types.head();
+                        if (isBuiltInType(type)) {
+                            type.typeArgs.type = t;
+                        } else {
+                            throw new CompileError('Custom types can\'t have type params', node.pos);
+                        }
+                    }
+                }
+                types.push(t);
+            },
+            exit(node) {
+                const t = types.head();
+                if (isBuiltInType(t) && isBuiltInArray(t)) {
+                    const typeArgs = t.typeArgs;
+                    if (typeArgs.type === undefined) {
+                        throw new CompileError(`Arrays expect child type argument`, node.pos);
+                    }
+                    if (!typeArgs.length && typeArgs.lengthOf === undefined) {
+                        throw new CompileError(`Arrays expect size type argument`, node.pos);
+                    }
+                }
+                types.pop();
+            },
+        },
+        endianness: {
             enter(node) {
-                currentFied!.args = node.typeArgs;
+                const type = types.head();
+                if (isBuiltInType(type)) {
+                    type.typeArgs.isLe = node.value === 'le';
+                }
             }
         },
-    });
-
-    // parametrized type validation
-    visitors.push({
-        parametrizedtype: {
+        number: {
             enter(node) {
-                const restrictions: TypeArgumentRestriction[] | undefined = restrictionsMap.get(node.typeName);
-                if (restrictions && restrictions.length) {
-                    restrictions.forEach(r => {
-                        if (r.length) {
-                            if (node.typeArgs.length !== r.length) {
-                                throw new CompileError(`Expected ${r.length} type arguments, got ${node.typeArgs.length}`, node.pos);
-                            }
-                        }
-                        if (r.maxLength) {
-                            if (node.typeArgs.length > r.maxLength) {
-                                throw new CompileError(`Expected ${r.maxLength} type argument(s) at max, got ${node.typeArgs.length}`, node.pos);
-                            }
-                        }
-                    });
+                const type = types.head();
+                if (isBuiltInType(type)) {
+                    type.typeArgs.length = node.value;
+                }
+            }
+        },
+        fieldref: {
+            enter(node) {
+                const type = types.head();
+                if (isBuiltInType(type)) {
+                    // TODO: add compile error
+                    type.typeArgs.lengthOf = node.fieldName;
+                    structs.head().props.find(p => p.name === node.fieldName)!.access = 'private';
                 }
             }
         },
     });
 
-    traverse([ast], visitors);
+    traverse([ast], visitors, []);
 
     return output;
 }

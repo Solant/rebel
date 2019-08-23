@@ -4,6 +4,9 @@ export enum AstNodeType {
     Document = 'document',
     SimpleType = 'simpletype',
     ParametrizedType = 'parametrizedtype',
+    Number = 'number',
+    Endianness = 'endianness',
+    FieldRef = 'fieldref'
 }
 
 export interface NodePosition {
@@ -37,7 +40,7 @@ export interface SimpleFieldTypeAstNode extends BaseAstNode {
 export interface ParamFieldTypeAstNode extends BaseAstNode {
     type: AstNodeType.ParametrizedType,
     typeName: string,
-    typeArgs: string[],
+    typeArgs: Array<ParamFieldTypeAstNode | EndiannessLiteralAstNode | NumberLiteralAstNode | FieldRefAstNode>,
 }
 
 export interface DocumentAstNode extends BaseAstNode {
@@ -45,6 +48,28 @@ export interface DocumentAstNode extends BaseAstNode {
     structures: StructureAstNode[],
 }
 
-export type AstNode = StructureAstNode | FieldAstNode | DocumentAstNode | SimpleFieldTypeAstNode | ParamFieldTypeAstNode;
+export interface NumberLiteralAstNode extends BaseAstNode {
+    type: AstNodeType.Number,
+    value: number,
+}
+
+export interface EndiannessLiteralAstNode extends BaseAstNode {
+    type: AstNodeType.Endianness,
+    value: string,
+}
+
+export interface FieldRefAstNode extends BaseAstNode {
+    type: AstNodeType.FieldRef,
+    fieldName: string,
+}
+
+export type AstNode = StructureAstNode
+    | FieldAstNode
+    | DocumentAstNode
+    | SimpleFieldTypeAstNode
+    | ParamFieldTypeAstNode
+    | NumberLiteralAstNode
+    | EndiannessLiteralAstNode
+    | FieldRefAstNode;
 
 export type BiMoAst = DocumentAstNode;

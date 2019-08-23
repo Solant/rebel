@@ -11,3 +11,4 @@ export function compile(source: string) {
 export { transform } from './transformer';
 export { generate } from './generators/ts';
 export { parse } from './parser/document';
+export { CompileError } from './transformer';
