@@ -15,6 +15,10 @@ export function isBuiltInType(t: BaseType): t is BuiltInType {
     return t.tag === TypeTag.BuiltIn;
 }
 
+export function isBuiltInArray(t: BuiltInType): boolean {
+    return t.name === 'array';
+}
+
 export interface CustomType {
     tag: TypeTag.Custom,
     default: boolean,

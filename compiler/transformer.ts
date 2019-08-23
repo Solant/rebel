@@ -1,4 +1,4 @@
-import {BaseType, CustomType, Field, isBuiltInType, TypeTag} from './types';
+import {BaseType, CustomType, Field, isBuiltInArray, isBuiltInType, TypeTag} from './types';
 import {
     AstNode,
     AstNodeType,
@@ -95,13 +95,18 @@ function traverse(nodes: AstNode[], visitors: AstNodeVisitor[], path: AstNode[])
     });
 }
 
-class CompileError extends Error {
+export class CompileError extends Error {
+    position?: { line: number, column: number };
     constructor(m: string, pos?: { line: number, column: number }) {
         if (pos) {
             super(`Compilation error at input:${pos.line}:${pos.column}\n${m}`)
         } else {
             super(m);
         }
+        // https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
+        Object.setPrototypeOf(this, CompileError.prototype);
+        this.name = 'CompileError';
+        this.position = pos;
     }
 }
 
@@ -242,7 +247,17 @@ export function transform(ast: BiMoAst): BaseType[] {
                 }
                 types.push(t);
             },
-            exit() {
+            exit(node) {
+                const t = types.head();
+                if (isBuiltInType(t) && isBuiltInArray(t)) {
+                    const typeArgs = t.typeArgs;
+                    if (typeArgs.type === undefined) {
+                        throw new CompileError(`Arrays expect child type argument`, node.pos);
+                    }
+                    if (!typeArgs.length && typeArgs.lengthOf === undefined) {
+                        throw new CompileError(`Arrays expect size type argument`, node.pos);
+                    }
+                }
                 types.pop();
             },
         },
