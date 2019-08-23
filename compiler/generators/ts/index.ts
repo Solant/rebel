@@ -179,8 +179,14 @@ function fieldRead(parent: string, field: Field): string {
     let result = '';
 
     if (isBuiltInType(field.type) && field.type.name === 'array') {
+        let range = '';
+        if (field.type.typeArgs.lengthOf) {
+            range = field.type.typeArgs.lengthOf;
+        } else {
+            range = field.type.typeArgs.length!.toString();
+        }
         result += `
-    for (let i = 0; i < ${field.type.typeArgs.lengthOf}; i++) {
+    for (let i = 0; i < ${range}; i++) {
         ${parent}.${field.name}.push(${typeIOFunction(field.type.typeArgs.type!, 'read')}());
     }
 `;
