@@ -8,7 +8,7 @@
     "test": "jest",
     "generate-parser": "pegjs --plugin ./node_modules/ts-pegjs -o compiler/parser/document.ts compiler/parser/document.pegjs",
     "web:dev": "nuxt",
-    "web:generate": "nuxt generate"
+    "web:generate": "npm run generate-parser && nuxt generate"
   },
   "bin": {
     "bimo": "./dist/cli.js"
