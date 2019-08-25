@@ -54,6 +54,8 @@ default struct ArrayStruct {
                 lineNumbers: true,
                 line: true,
                 lineWrapping: true,
+                theme: 'base16-light',
+                mode: '',
             });
 
             const result = reactive({
@@ -87,3 +89,11 @@ default struct ArrayStruct {
         },
     })
 </script>
+
+<style>
+    /* purgecss start ignore */
+    @import '../../node_modules/codemirror/lib/codemirror.css';
+    @import '../../node_modules/codemirror/addon/merge/merge.css';
+    @import '../../node_modules/codemirror/theme/base16-light.css';
+    /* purgecss start ignore */
+</style>

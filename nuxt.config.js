@@ -4,18 +4,17 @@ export default {
         '@nuxt/typescript-build',
         '@nuxtjs/tailwindcss',
     ],
+    head: {
+        titleTemplate: 'BiMo compiler demo',
+        meta: [
+            { charset: 'utf-8' },
+            { hid: 'description', name: 'description', content: 'BiMo online demo' }
+        ]
+    },
     plugins: [
         'plugins/composition',
         { src: 'plugins/codemirror', ssr: false },
     ],
-    css: [
-        'codemirror/lib/codemirror.css',
-        'codemirror/addon/merge/merge.css',
-        'codemirror/theme/base16-dark.css',
-    ],
-    purgeCSS: {
-        whitelist: ['CodeMirror', 'cm-'],
-    },
     generate: {
         dir: 'dist-web',
     }
