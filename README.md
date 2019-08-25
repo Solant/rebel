@@ -31,7 +31,7 @@ exactly one default structure is required for a file, as it will be used to gene
 Structures can define several fields in next format: `<fieldName>: <type>;`. All fields with the exception of dependant fields will be generated in output code, for example:
 ```
 default struct MainStruct {
-  tmp: i32;
+  myField: i32;
 }
 ```
 will generate this TypeScript code:
