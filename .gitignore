@@ -4,7 +4,9 @@ coverage/
 
 compiler/parser/document.ts
 
+# Nuxt
 .nuxt/
+dist-web/
 
 # some testing data files
 tes*.bin

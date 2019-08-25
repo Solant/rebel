@@ -13,4 +13,7 @@ export default {
         'codemirror/addon/merge/merge.css',
         'codemirror/theme/base16-dark.css',
     ],
+    generate: {
+        dir: 'dist-web',
+    }
 }
