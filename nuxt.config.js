@@ -13,6 +13,9 @@ export default {
         'codemirror/addon/merge/merge.css',
         'codemirror/theme/base16-dark.css',
     ],
+    purgeCSS: {
+        whitelist: ['CodeMirror', 'cm-'],
+    },
     generate: {
         dir: 'dist-web',
     }
