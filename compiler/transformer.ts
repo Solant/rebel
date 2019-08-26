@@ -265,6 +265,9 @@ export function transform(ast: BiMoAst): BaseType[] {
             enter(node) {
                 const type = types.head();
                 if (isBuiltInType(type)) {
+                    if (isBuiltInArray(type)) {
+                        throw new CompileError(`Arrays don't have endianness param`, node.pos);
+                    }
                     type.typeArgs.isLe = node.value === 'le';
                 }
             }
@@ -281,9 +284,12 @@ export function transform(ast: BiMoAst): BaseType[] {
             enter(node) {
                 const type = types.head();
                 if (isBuiltInType(type)) {
-                    // TODO: add compile error
+                    const referredField = structs.head().props.find(p => p.name === node.fieldName);
+                    if (referredField === undefined) {
+                        throw new CompileError(`Array size field should be declared before array`, node.pos);
+                    }
+                    referredField.access = 'private';
                     type.typeArgs.lengthOf = node.fieldName;
-                    structs.head().props.find(p => p.name === node.fieldName)!.access = 'private';
                 }
             }
         },

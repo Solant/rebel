@@ -18,4 +18,22 @@ describe('Array fields ', () => {
         }
         `)).toThrow(CompileError);
     });
+
+    it('should refer to existing field', () => {
+        expect(() => compile(`
+        default struct Test {
+            size: i32;
+            data: array<i32<le>, #differentField>;
+        }
+        `)).toThrow(CompileError);
+    });
+
+    it('should not have endianness param', () => {
+        expect(() => compile(`
+        default struct Test {
+            size: i32;
+            data: array<i32<le>, #size, le>;
+        }
+        `)).toThrow(CompileError);
+    });
 });
