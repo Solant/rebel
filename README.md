@@ -1,3 +1,4 @@
+[![CircleCI](https://circleci.com/gh/Solant/bimo/tree/master.svg?style=svg)](https://circleci.com/gh/Solant/bimo/tree/master)
 # bimo
 Binary file description language inspired by [Kaitai Struct](https://kaitai.io/) with some new key features:
 * Support of both read and write operations
