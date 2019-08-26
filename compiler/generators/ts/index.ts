@@ -2,6 +2,7 @@ import { BaseType, BuiltInType, CustomType, Field, isBuiltInType, isCustomType, 
 import { render } from 'mustache';
 import { injectedCode } from './runtime';
 import {assertNever, CodeGenerationError} from '../../assertions';
+import { CodeGeneratorOptions } from '../options';
 
 interface NativeTypeInfo {
     name: string,
@@ -110,7 +111,7 @@ interface GeneratorOutput {
     fileExtension: string,
     fileContent: string,
 }
-export function generate(types: BaseType[]): GeneratorOutput {
+export function generate(types: BaseType[], options: CodeGeneratorOptions): GeneratorOutput {
     let code = '';
 
     // Inject runtime

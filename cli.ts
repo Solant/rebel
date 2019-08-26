@@ -1,29 +1,21 @@
-import { readFileSync, existsSync, writeFileSync } from 'fs';
-import { resolve, dirname } from 'path';
+import { readFileSync, writeFileSync } from 'fs';
 import { parse, transform, generate } from './compiler';
-import { getCliArg } from './cli-util';
+import { options } from 'yargs';
+import { basename, extname } from 'path';
 
-const currentFolder = dirname(process.argv[1]);
-const filePath = process.argv[2];
+const args = options({
+    emitRuntime: { type: 'boolean', default: true },
+    target: { type: 'string', choices: ['ts'], required: true },
+    output: { type: 'string', required: false },
+    _: { type: 'string', required: true },
+})
+    .help()
+    .argv;
 
-const path = resolve(currentFolder, filePath);
-if (!existsSync(path)) {
-    console.error(`File ${path} was not found`);
-    process.exit(1);
-}
 
-const target = getCliArg(process.argv, 'target');
+const file = args._[0];
+const fileContent = readFileSync(file, { encoding: 'UTF-8'});
 
-if (!target) {
-    throw new Error(`Option --target was not specified`);
-}
-
-let outputFileName = getCliArg(process.argv, 'output');
-if (!outputFileName) {
-    outputFileName = 'output';
-}
-
-const fileContent = readFileSync(path, { encoding: 'UTF-8'});
-
-const output = generate(transform(parse(fileContent)));
-writeFileSync(resolve(currentFolder, `${outputFileName}.${output.fileExtension}`), output.fileContent);
+const output = generate(transform(parse(fileContent)), {});
+const outputFile = args.output ? args.output : (basename(file, extname(file)) + `.${output.fileExtension}`);
+writeFileSync(outputFile, output.fileContent);
