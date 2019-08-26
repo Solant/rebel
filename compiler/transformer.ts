@@ -8,7 +8,7 @@ import {
     SimpleFieldTypeAstNode
 } from './parser/ast';
 import {isTypeName} from "./builtInTypes";
-import { assertNever } from './switch-guard';
+import {assertNever, CompileError} from './assertions';
 
 type DiscriminateUnion<T, K extends keyof T, V extends T[K]> = T extends Record<K, V> ? T : never;
 
@@ -93,21 +93,6 @@ function traverse(nodes: AstNode[], visitors: AstNodeVisitor[], path: AstNode[])
             }
         }
     });
-}
-
-export class CompileError extends Error {
-    position?: { line: number, column: number };
-    constructor(m: string, pos?: { line: number, column: number }) {
-        if (pos) {
-            super(`Compilation error at input:${pos.line}:${pos.column}\n${m}`)
-        } else {
-            super(m);
-        }
-        // https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
-        Object.setPrototypeOf(this, CompileError.prototype);
-        this.name = 'CompileError';
-        this.position = pos;
-    }
 }
 
 export function transform(ast: BiMoAst): BaseType[] {
@@ -265,6 +250,9 @@ export function transform(ast: BiMoAst): BaseType[] {
             enter(node) {
                 const type = types.head();
                 if (isBuiltInType(type)) {
+                    if (isBuiltInArray(type)) {
+                        throw new CompileError(`Arrays don't have endianness param`, node.pos);
+                    }
                     type.typeArgs.isLe = node.value === 'le';
                 }
             }
@@ -281,9 +269,12 @@ export function transform(ast: BiMoAst): BaseType[] {
             enter(node) {
                 const type = types.head();
                 if (isBuiltInType(type)) {
-                    // TODO: add compile error
+                    const referredField = structs.head().props.find(p => p.name === node.fieldName);
+                    if (referredField === undefined) {
+                        throw new CompileError(`Array size field should be declared before array`, node.pos);
+                    }
+                    referredField.access = 'private';
                     type.typeArgs.lengthOf = node.fieldName;
-                    structs.head().props.find(p => p.name === node.fieldName)!.access = 'private';
                 }
             }
         },

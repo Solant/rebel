@@ -1,20 +1,11 @@
 import { BaseType, BuiltInType, CustomType, Field, isBuiltInType, isCustomType, TypeTag } from '../../types';
 import { render } from 'mustache';
 import { injectedCode } from './runtime';
-import { assertNever } from '../../switch-guard';
-import { ok } from 'assert';
-import { Type } from '../../builtInTypes';
-import { isNullOrUndefined } from 'util';
+import {assertNever, CodeGenerationError} from '../../assertions';
 
 interface NativeTypeInfo {
     name: string,
     defaultValue: any,
-}
-
-class CodeGenError extends Error {
-    constructor(m: string) {
-        super(m);
-    }
 }
 
 const nativeTypeMap: Map<string, NativeTypeInfo> = new Map();
@@ -243,8 +234,10 @@ function typeDeclaration(type: BaseType): string {
                 return 'number';
             }
             case 'array': {
-                const childType = type.typeArgs.type!;
-                ok(childType);
+                const childType = type.typeArgs.type;
+                if (childType === undefined) {
+                    throw new CodeGenerationError('Array is not supported');
+                }
                 return `${typeDeclaration(childType)}[]`;
             }
             default: {
@@ -271,8 +264,10 @@ function defaultTypeValue(type: BaseType): string {
                 return '0';
             }
             case 'array': {
-                const childType = type.typeArgs.type!;
-                ok(childType);
+                const childType = type.typeArgs.type;
+                if (childType === undefined) {
+                    throw new CodeGenerationError('No child type found on array field');
+                }
                 return '[]';
             }
             default: {
@@ -289,7 +284,7 @@ type IO = 'read' | 'write';
 function typeIOFunction(type: BaseType, flag: IO): string {
     if (isBuiltInType(type)) {
         if (type.name === 'array') {
-            throw new TypeError('Array is not supported');
+            throw new CodeGenerationError('Array is not supported');
         } else {
             return `stream.${flag}${capitalizeNative(type.name)}`
         }
