@@ -124,14 +124,14 @@ export function generate(types: BaseType[]): GeneratorOutput {
     code += types
         .filter(isCustomType)
         .map(t => ([generateStructRead(t), generateStructWrite(t)]))
-        .flat()
+        .reduce((acc, val) => acc.concat(val), [])
         .join('\n');
 
     code += types
         .filter(isCustomType)
         .filter(t => t.default)
         .map(t => ([generateMainStructRead(t), generatemainStructWrite(t)]))
-        .flat()
+        .reduce((acc, val) => acc.concat(val), [])
         .join('\n');
 
     return { fileExtension: 'ts', fileContent: code };
