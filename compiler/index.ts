@@ -1,11 +1,12 @@
 import { parse } from './parser/document';
 import { transform } from './transformer';
 import { generate } from './generators/ts';
+import { CompilerOptions } from './options';
 
-export function compile(source: string) {
+export function compile(source: string, opts: CompilerOptions) {
     const ast = parse(source);
     const newAst = transform(ast);
-    return generate(newAst);
+    return generate(newAst, opts);
 }
 
 export { transform } from './transformer';

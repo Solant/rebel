@@ -22,7 +22,7 @@ describe('Simple struct', function () {
             },
             bimo: {
                 prepare() {
-                    const source = compile(read('plain.bimo'));
+                    const source = compile(read('plain.bimo'), { emitRuntime: true, target: 'ts' });
                     write('plain-compiled.ts', source.fileContent);
                 },
                 read: 'npx ts-node read.ts read',
