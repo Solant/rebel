@@ -9,7 +9,14 @@
                         :options="cmOptions"
                     />
                 </client-only>
-                <button @click="runCompiler">click me to compile</button>
+                <button @click="runCompiler" class="btn btn-blue">Compile</button>
+                <div>
+                    <span class="text-xl block">Options</span>
+                    <label class="block">
+                        <input type="checkbox" v-model="emitRuntime">
+                        Emit runtime (makes code compilable and output bigger)
+                    </label>
+                </div>
                 <div role="alert" v-if="result.message">
                     <div
                         class="text-white font-bold rounded-t px-4 py-2"
@@ -47,7 +54,8 @@ default struct ArrayStruct {
     data: array<i32<le>, #size>;
 }
 `);
-            let output = ref('asd');
+            let output = ref('');
+            let emitRuntime = ref(false);
 
             const cmOptions = reactive({
                 tabSize: 4,
@@ -67,7 +75,7 @@ default struct ArrayStruct {
             function runCompiler() {
                 try {
                     const t0 = performance.now();
-                    output.value = compile(input.value).fileContent;
+                    output.value = compile(input.value, { emitRuntime: emitRuntime.value, target: 'ts' }).fileContent;
                     const t1 = performance.now();
 
                     result.time = t1 - t0;
@@ -85,6 +93,7 @@ default struct ArrayStruct {
                 cmOptions,
                 runCompiler,
                 result,
+                emitRuntime,
             }
         },
     })
@@ -96,4 +105,14 @@ default struct ArrayStruct {
     @import '../../node_modules/codemirror/addon/merge/merge.css';
     @import '../../node_modules/codemirror/theme/base16-light.css';
     /* purgecss start ignore */
+
+    .btn {
+        @apply font-bold py-2 px-4 rounded;
+    }
+    .btn-blue {
+        @apply bg-blue-500 text-white;
+    }
+    .btn-blue:hover {
+        @apply bg-blue-700;
+    }
 </style>
