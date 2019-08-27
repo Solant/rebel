@@ -10,12 +10,12 @@ describe('Struct declarations', () => {
         default struct Test {
             num: i32;
         }
-        `)).toThrow(CompileError);
+        `, { emitRuntime: true, target: 'ts' })).toThrow(CompileError);
 
         expect(() => compile(`
         struct Test {
             num: i32;
         }
-        `)).toThrow(CompileError);
+        `, { emitRuntime: true, target: 'ts' })).toThrow(CompileError);
     });
 });

@@ -22,7 +22,7 @@ describe('Static arrays', function () {
             },
             bimo: {
                 prepare() {
-                    const source = compile(read('array.bimo'));
+                    const source = compile(read('array.bimo'), { emitRuntime: true, target: 'ts' });
                     write('array-compiled.ts', source.fileContent);
                 },
                 read: 'npx ts-node main.ts test.bin read',

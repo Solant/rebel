@@ -7,7 +7,7 @@ describe('Array fields ', () => {
             size: i32;
             data: array<3>;
         }
-        `)).toThrow(CompileError);
+        `, { emitRuntime: true, target: 'ts' })).toThrow(CompileError);
     });
 
     it('should have size argument', () => {
@@ -16,7 +16,7 @@ describe('Array fields ', () => {
             size: i32;
             data: array<i32<le>>;
         }
-        `)).toThrow(CompileError);
+        `, { emitRuntime: true, target: 'ts' })).toThrow(CompileError);
     });
 
     it('should refer to existing field', () => {
@@ -25,7 +25,7 @@ describe('Array fields ', () => {
             size: i32;
             data: array<i32<le>, #differentField>;
         }
-        `)).toThrow(CompileError);
+        `, { emitRuntime: true, target: 'ts' })).toThrow(CompileError);
     });
 
     it('should not have endianness param', () => {
@@ -34,6 +34,6 @@ describe('Array fields ', () => {
             size: i32;
             data: array<i32<le>, #size, le>;
         }
-        `)).toThrow(CompileError);
+        `, { emitRuntime: true, target: 'ts' })).toThrow(CompileError);
     });
 });
