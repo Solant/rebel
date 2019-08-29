@@ -60,7 +60,7 @@ FieldRef = '#' fieldName:[a-zA-Z0-9]+ {
     };
 }
 
-PossibleTypeArgs = FieldRef / ParametrizedType / NumberLiteral / EndiannessLiteral
+PossibleTypeArgs = FieldRef / ParametrizedType / NumberLiteral / EndiannessLiteral / SimpleType
 
 TypeArg = _ arg:PossibleTypeArgs ','? _ {
 	return arg;
