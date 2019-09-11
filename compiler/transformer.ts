@@ -20,20 +20,16 @@ type AstNodeVisitor = { [key in AstNodeType]?: EnterExitVisitor<DiscriminateUnio
 
 function enterNode<T extends AstNode>(node: T, visitors: AstNodeVisitor[], path: AstNode[]) {
     for (let visitor of visitors) {
-        // TODO: fix type casting
-        // @ts-ignore
-        const callback: EnterExitVisitor<T> = visitor[node.type];
+        const callback = visitor[node.type] as EnterExitVisitor<T> | undefined;
         if (callback && callback.enter) {
             callback.enter(node, path);
         }
     }
 }
 
-function exitNode(node: AstNode, visitors: AstNodeVisitor[], path: AstNode[]) {
+function exitNode<T extends AstNode>(node: T, visitors: AstNodeVisitor[], path: AstNode[]) {
     for (let visitor of visitors) {
-        // TODO: fix type casting
-        // @ts-ignore
-        const callback: EnterExitVisitor<T> = visitor[node.type];
+        const callback = visitor[node.type] as EnterExitVisitor<T> | undefined;
         if (callback && callback.exit) {
             callback.exit(node, path);
         }
