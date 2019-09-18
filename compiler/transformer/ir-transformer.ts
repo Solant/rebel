@@ -1,4 +1,4 @@
-import {BaseType, CustomType, Field, isBuiltInArray, isBuiltInType, TypeTag} from './types';
+import { BaseType, CustomType, Field, isBuiltInArray, isBuiltInType, TypeTag } from './ir-ast';
 import {
     AstNode,
     AstNodeType,
@@ -6,9 +6,9 @@ import {
     NodePosition,
     ParamFieldTypeAstNode,
     SimpleFieldTypeAstNode
-} from './parser/ast';
-import {isTypeName} from "./builtInTypes";
-import {assertNever, CompileError} from './assertions';
+} from '../parser/ast';
+import {isTypeName} from "../builtInTypes";
+import {assertNever, CompileError} from '../assertions';
 
 type DiscriminateUnion<T, K extends keyof T, V extends T[K]> = T extends Record<K, V> ? T : never;
 

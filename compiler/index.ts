@@ -1,5 +1,5 @@
 import { parse } from './parser/document';
-import { transform } from './transformer';
+import { transform } from './transformer/ir-transformer';
 import { generate } from './generators/ts';
 import { CompilerOptions } from './options';
 
@@ -9,7 +9,7 @@ export function compile(source: string, opts: CompilerOptions) {
     return generate(newAst, opts);
 }
 
-export { transform } from './transformer';
+export { transform } from './transformer/ir-transformer';
 export { generate } from './generators/ts';
 export { parse } from './parser/document';
 export { CompileError, CodeGenerationError } from './assertions';

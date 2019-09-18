@@ -1,4 +1,4 @@
-import { BaseType, BuiltInType, CustomType, Field, isBuiltInType, isCustomType, TypeTag } from '../../types';
+import { BaseType, BuiltInType, CustomType, Field, isBuiltInType, isCustomType, TypeTag } from '../../transformer/ir-ast';
 import { render } from 'mustache';
 import { injectedCode } from './runtime';
 import {assertNever, CodeGenerationError} from '../../assertions';
