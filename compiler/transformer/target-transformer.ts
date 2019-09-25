@@ -37,12 +37,23 @@ function getReadFunctionDeclaration(type: CustomType): TargetAst.FunctionDeclara
         }
     });
 
+    const createType: TargetAst.CreateType = {
+        tag: ExpressionTag.CreateType,
+        name: type.name,
+        id: 'ret',
+    };
+
+    const ret: TargetAst.ReturnStatement = {
+        tag: ExpressionTag.ReturnStatement,
+        id: 'ret',
+    };
+
     return {
         tag: ExpressionTag.FunctionDeclaration,
         id: `read${type.name}`,
         type: `${type.name}`,
         params: [{ id: 'stream', type: 'BimoStream' }],
-        body: props,
+        body: [...props, createType, ret],
     };
 }
 

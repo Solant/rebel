@@ -1,6 +1,8 @@
 import { BuiltInType, CustomType } from './ir-ast';
 
 export enum ExpressionTag {
+    CreateType,
+    ReturnStatement,
     ReadArrayType,
     ReadCustomType,
     FunctionDeclaration,
@@ -27,7 +29,7 @@ export interface FunctionDeclaration {
     id: string,
     type: string,
     params: { id: string, type: string }[],
-    body: Array<ReadBuiltInType | ReadCustomType | ReadArrayType>,
+    body: Array<ReadBuiltInType | ReadCustomType | ReadArrayType | CreateType | ReturnStatement>,
 }
 
 export interface Program {
@@ -46,6 +48,17 @@ export interface ReadCustomType {
     tag: ExpressionTag.ReadCustomType,
     id: string,
     type: CustomType,
+}
+
+export interface CreateType {
+    tag: ExpressionTag.CreateType,
+    name: string,
+    id: string,
+}
+
+export interface ReturnStatement {
+    tag: ExpressionTag.ReturnStatement,
+    id: string,
 }
 
 export interface ReadArrayType {
