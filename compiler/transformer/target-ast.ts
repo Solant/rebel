@@ -1,15 +1,15 @@
 import { BuiltInType, CustomType } from './ir-ast';
 
 export enum ExpressionTag {
-    CreateType,
-    ReturnStatement,
-    ReadArrayType,
-    ReadCustomType,
-    FunctionDeclaration,
-    ReadBuiltInType,
-    Program,
-    TypeDeclaration,
-    TypeFieldDeclaration,
+    CreateType = 'CreateType',
+    ReturnStatement = 'ReturnStatement',
+    ReadArrayType = 'ReadArrayType',
+    ReadCustomType = 'ReadCustomType',
+    FunctionDeclaration = 'FunctionDeclaration',
+    ReadBuiltInType = 'ReadBuiltInType',
+    Program = 'Program',
+    TypeDeclaration = 'TypeDeclaration',
+    TypeFieldDeclaration = 'TypeFieldDeclaration',
 }
 
 export interface TypeDeclaration {
@@ -67,3 +67,13 @@ export interface ReadArrayType {
     read: ReadBuiltInType | ReadCustomType,
     sizeExpr: string,
 }
+
+export type Node = CreateType
+    | ReturnStatement
+    | ReadArrayType
+    | ReadCustomType
+    | FunctionDeclaration
+    | ReadBuiltInType
+    | Program
+    | TypeDeclaration
+    | TypeFieldDeclaration;
