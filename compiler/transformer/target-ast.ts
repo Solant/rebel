@@ -1,4 +1,4 @@
-import { BuiltInType, CustomType } from './ir-ast';
+import { BaseType, BuiltInType, CustomType } from './ir-ast';
 
 export enum ExpressionTag {
     CreateType = 'CreateType',
@@ -21,7 +21,7 @@ export interface TypeDeclaration {
 export interface TypeFieldDeclaration {
     tag: ExpressionTag.TypeFieldDeclaration,
     name: string,
-    type: string,
+    type: BaseType,
 }
 
 export interface FunctionDeclaration {

@@ -6,7 +6,7 @@ function getTypeField(f: Field): TargetAst.TypeFieldDeclaration {
     return {
         tag: ExpressionTag.TypeFieldDeclaration,
         name: f.name,
-        type: f.type.name,
+        type: f.type,
     };
 }
 
