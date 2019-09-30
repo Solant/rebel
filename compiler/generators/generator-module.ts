@@ -138,11 +138,6 @@ export const ts: GeneratorModule = {
                         exitNode(node, visitors, currentPath);
                         break;
                     }
-                    case ExpressionTag.TypeFieldDeclaration: {
-                        enterNode(node, visitors, currentPath);
-                        exitNode(node, visitors, currentPath);
-                        break;
-                    }
                     case ExpressionTag.FunctionDeclaration: {
                         enterNode(node, visitors, currentPath);
                         traverse([node.signature], visitors, currentPath);
@@ -150,29 +145,18 @@ export const ts: GeneratorModule = {
                         exitNode(node, visitors, currentPath);
                         break;
                     }
-                    case ExpressionTag.ReadBuiltInType: {
-                        enterNode(node, visitors, currentPath);
-                        exitNode(node, visitors, currentPath);
-                        break;
-                    }
-                    case ExpressionTag.CreateType: {
-                        enterNode(node, visitors, currentPath);
-                        exitNode(node, visitors, currentPath);
-                        break;
-                    }
-                    case ExpressionTag.ReturnStatement: {
-                        enterNode(node, visitors, currentPath);
-                        exitNode(node, visitors, currentPath);
-                        break;
-                    }
-                    case ExpressionTag.FunctionParameter: {
-                        enterNode(node, visitors, currentPath);
-                        exitNode(node, visitors, currentPath);
-                        break;
-                    }
                     case ExpressionTag.FunctionSignature: {
                         enterNode(node, visitors, currentPath);
                         traverse(node.params, visitors, currentPath);
+                        exitNode(node, visitors, currentPath);
+                        break;
+                    }
+                    case ExpressionTag.TypeFieldDeclaration:
+                    case ExpressionTag.ReadBuiltInType:
+                    case ExpressionTag.CreateType:
+                    case ExpressionTag.ReturnStatement:
+                    case ExpressionTag.FunctionParameter: {
+                        enterNode(node, visitors, currentPath);
                         exitNode(node, visitors, currentPath);
                         break;
                     }
