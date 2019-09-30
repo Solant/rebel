@@ -18,6 +18,40 @@ function getTypeDeclaration(type: CustomType): TargetAst.TypeDeclaration {
     }
 }
 
+function getWriteFunctionDeclaration(type: CustomType): TargetAst.FunctionDeclaration {
+    const props: Array<TargetAst.WriteCustomType | TargetAst.WriteBuiltInType> = type.props.map((prop)=> {
+        const propType = prop.type;
+        switch (propType.tag) {
+            case TypeTag.BuiltIn:
+                return {
+                    tag: ExpressionTag.WriteBuiltInType,
+                    id: prop.name,
+                    type: propType,
+                };
+            case TypeTag.Custom:
+                return {
+                    tag: ExpressionTag.WriteCustomType,
+                    id: prop.name,
+                    type: propType,
+                }
+        }
+    });
+
+    return {
+        tag: ExpressionTag.FunctionDeclaration,
+        id: `write${type.name}`,
+        type: ``,
+        signature: {
+            tag: ExpressionTag.FunctionSignature,
+            params: [
+                { tag: ExpressionTag.FunctionParameter, id: 'struct', type },
+                { tag: ExpressionTag.FunctionParameter, id: 'stream', type: 'BimoStream' },
+            ],
+        },
+        body: [...props],
+    };
+}
+
 function getReadFunctionDeclaration(type: CustomType): TargetAst.FunctionDeclaration {
     const props: Array<ReadCustomType | ReadBuiltInType | ReadArrayType> = type.props.map((prop)=> {
         const propType = prop.type;
@@ -63,10 +97,15 @@ function getReadFunctionDeclaration(type: CustomType): TargetAst.FunctionDeclara
 export function transform(types: BaseType[]) {
     const customTypes = types.filter(isCustomType);
 
+    const functions = [
+        ...customTypes.map(getReadFunctionDeclaration),
+        ...customTypes.map(getWriteFunctionDeclaration),
+    ];
+
     const result: TargetAst.Program = {
         tag: ExpressionTag.Program,
         declarations: customTypes.map(getTypeDeclaration),
-        functions: customTypes.map(getReadFunctionDeclaration),
+        functions,
     };
 
     return result;

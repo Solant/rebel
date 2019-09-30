@@ -1,6 +1,8 @@
 import { BaseType, BuiltInType, CustomType } from './ir-ast';
 
 export enum ExpressionTag {
+    WriteCustomType = 'WriteCustomType',
+    WriteBuiltInType = 'WriteBuiltInType',
     FunctionSignature = 'FunctionSignature',
     FunctionParameter = 'FunctionParameter',
     CreateType = 'CreateType',
@@ -31,7 +33,7 @@ export interface FunctionDeclaration {
     id: string,
     type: string,
     signature: FunctionSignature,
-    body: Array<ReadBuiltInType | ReadCustomType | ReadArrayType | CreateType | ReturnStatement>,
+    body: Array<ReadBuiltInType | ReadCustomType | ReadArrayType | CreateType | ReturnStatement | WriteBuiltInType | WriteCustomType>,
 }
 
 export interface FunctionSignature {
@@ -55,6 +57,18 @@ export interface ReadBuiltInType {
     tag: ExpressionTag.ReadBuiltInType,
     id: string,
     type: BuiltInType,
+}
+
+export interface WriteBuiltInType {
+    tag: ExpressionTag.WriteBuiltInType,
+    id: string,
+    type: BuiltInType,
+}
+
+export interface WriteCustomType {
+    tag: ExpressionTag.WriteCustomType,
+    id: string,
+    type: CustomType,
 }
 
 export interface ReadCustomType {
@@ -91,4 +105,6 @@ export type Node = CreateType
     | TypeDeclaration
     | TypeFieldDeclaration
     | FunctionParameter
-    | FunctionSignature;
+    | FunctionSignature
+    | WriteCustomType
+    | WriteBuiltInType;

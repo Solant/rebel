@@ -86,7 +86,7 @@ export const ts: GeneratorModule = {
                     if (node.type === 'BimoStream') {
                         result += `${node.id}: ${node.type}`;
                     } else {
-                        throw new TypeError('oops');
+                        result += `${node.id}: ${typeTransformer(node.type)}`;
                     }
                 },
                 exit() {
@@ -106,6 +106,16 @@ export const ts: GeneratorModule = {
             CreateType: {
                 enter(node) {
                     result += `const ${node.id} = { ${node.type.props.map(p => p.name).join(',')} };\n`;
+                },
+            },
+            WriteBuiltInType: {
+                enter(node, path, scope) {
+                    result += `${'\t'.repeat(scope.level)}stream.write${node.type.name}(struct.${node.id});\n`;
+                },
+            },
+            WriteCustomType: {
+                enter(node, path, scope) {
+                    result += `${'\t'.repeat(scope.level)}write${node.type.name}(struct.${node.id}, stream);\n`;
                 },
             },
             ReturnStatement: {
@@ -163,6 +173,8 @@ export const ts: GeneratorModule = {
                         exitNode(node, visitors, currentPath, scope);
                         break;
                     }
+                    case ExpressionTag.WriteCustomType:
+                    case ExpressionTag.WriteBuiltInType:
                     case ExpressionTag.ReadCustomType:
                     case ExpressionTag.TypeFieldDeclaration:
                     case ExpressionTag.ReadBuiltInType:
