@@ -52,7 +52,10 @@ function getReadFunctionDeclaration(type: CustomType): TargetAst.FunctionDeclara
         tag: ExpressionTag.FunctionDeclaration,
         id: `read${type.name}`,
         type: `${type.name}`,
-        params: [{ id: 'stream', type: 'BimoStream' }],
+        signature: {
+            tag: ExpressionTag.FunctionSignature,
+            params: [{ tag: ExpressionTag.FunctionParameter, id: 'stream', type: 'BimoStream' }],
+        },
         body: [...props, createType, ret],
     };
 }

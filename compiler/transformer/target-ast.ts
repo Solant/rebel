@@ -1,6 +1,8 @@
 import { BaseType, BuiltInType, CustomType } from './ir-ast';
 
 export enum ExpressionTag {
+    FunctionSignature = 'FunctionSignature',
+    FunctionParameter = 'FunctionParameter',
     CreateType = 'CreateType',
     ReturnStatement = 'ReturnStatement',
     ReadArrayType = 'ReadArrayType',
@@ -28,8 +30,19 @@ export interface FunctionDeclaration {
     tag: ExpressionTag.FunctionDeclaration,
     id: string,
     type: string,
-    params: { id: string, type: string }[],
+    signature: FunctionSignature,
     body: Array<ReadBuiltInType | ReadCustomType | ReadArrayType | CreateType | ReturnStatement>,
+}
+
+export interface FunctionSignature {
+    tag: ExpressionTag.FunctionSignature,
+    params: FunctionParameter[],
+}
+
+export interface FunctionParameter {
+    tag: ExpressionTag.FunctionParameter,
+    id: string,
+    type: BaseType | 'BimoStream',
 }
 
 export interface Program {
@@ -76,4 +89,6 @@ export type Node = CreateType
     | ReadBuiltInType
     | Program
     | TypeDeclaration
-    | TypeFieldDeclaration;
+    | TypeFieldDeclaration
+    | FunctionParameter
+    | FunctionSignature;

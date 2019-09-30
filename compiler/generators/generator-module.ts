@@ -1,8 +1,8 @@
 import * as TargetAst from '../transformer/target-ast';
+import { ExpressionTag } from '../transformer/target-ast';
 import { DiscriminateUnion, EnterExitVisitor } from '../visitor';
 import { BaseType, TypeTag } from '../transformer/ir-ast';
 import { TypeName } from '../builtInTypes';
-import { ExpressionTag } from '../transformer/target-ast';
 
 interface GeneratorModule {
     fileExtension: string,
@@ -10,7 +10,7 @@ interface GeneratorModule {
     generate: (s: TargetAst.Program) => string,
 }
 
-type AstVisitor = { [key in TargetAst.ExpressionTag]?: EnterExitVisitor<DiscriminateUnion<TargetAst.Node, 'tag', key>> };
+type AstVisitor = { [key in TargetAst.ExpressionTag]?: EnterExitVisitor<DiscriminateUnion<TargetAst.Node, 'tag', key>, TargetAst.Node> };
 
 export const ts: GeneratorModule = {
     fileExtension: 'ts',
@@ -57,20 +57,49 @@ export const ts: GeneratorModule = {
                     result += ',\n';
                 }
             },
+            FunctionDeclaration: {
+                enter(node) {
+                    result += `function ${node.id}`;
+                },
+                exit(node) {
+                    result += '}\n';
+                },
+            },
+            FunctionSignature: {
+                enter() {
+                    result += '(';
+                },
+                exit(node, path) {
+                    const { type } = path.find(t => t.tag === ExpressionTag.FunctionDeclaration)! as TargetAst.FunctionDeclaration;
+                    result += `): ${type} {\n`;
+                },
+            },
+            FunctionParameter: {
+                enter(node) {
+                    if (node.type === 'BimoStream') {
+                        result += `${node.id}: ${node.type}`;
+                    } else {
+                        throw new TypeError('oops');
+                    }
+                },
+                exit() {
+                    result += ',';
+                },
+            },
         };
 
-        function enterNode<T extends TargetAst.Node>(node: T, visitors: AstVisitor[], path: T[]) {
+        function enterNode<T extends TargetAst.Node>(node: T, visitors: AstVisitor[], path: TargetAst.Node[]) {
             for (let visitor of visitors) {
-                const callback = visitor[node.tag] as EnterExitVisitor<T> | undefined;
+                const callback = visitor[node.tag] as EnterExitVisitor<T, TargetAst.Node> | undefined;
                 if (callback && callback.enter) {
                     callback.enter(node, path);
                 }
             }
         }
 
-        function exitNode<T extends TargetAst.Node>(node: T, visitors: AstVisitor[], path: T[]) {
+        function exitNode<T extends TargetAst.Node>(node: T, visitors: AstVisitor[], path: TargetAst.Node[]) {
             for (let visitor of visitors) {
-                const callback = visitor[node.tag] as EnterExitVisitor<T> | undefined;
+                const callback = visitor[node.tag] as EnterExitVisitor<T, TargetAst.Node> | undefined;
                 if (callback && callback.exit) {
                     callback.exit(node, path);
                 }
@@ -84,7 +113,7 @@ export const ts: GeneratorModule = {
                     case ExpressionTag.Program: {
                         enterNode(node, visitors, currentPath);
                         traverse(node.declarations, visitors, currentPath);
-                        // traverse(node.functions, visitors, currentPath);
+                        traverse(node.functions, visitors, currentPath);
                         exitNode(node, visitors, currentPath);
                         break;
                     }
@@ -96,6 +125,39 @@ export const ts: GeneratorModule = {
                     }
                     case ExpressionTag.TypeFieldDeclaration: {
                         enterNode(node, visitors, currentPath);
+                        exitNode(node, visitors, currentPath);
+                        break;
+                    }
+                    case ExpressionTag.FunctionDeclaration: {
+                        enterNode(node, visitors, currentPath);
+                        traverse([node.signature], visitors, currentPath);
+                        traverse(node.body, visitors, currentPath);
+                        exitNode(node, visitors, currentPath);
+                        break;
+                    }
+                    case ExpressionTag.ReadBuiltInType: {
+                        enterNode(node, visitors, currentPath);
+                        exitNode(node, visitors, currentPath);
+                        break;
+                    }
+                    case ExpressionTag.CreateType: {
+                        enterNode(node, visitors, currentPath);
+                        exitNode(node, visitors, currentPath);
+                        break;
+                    }
+                    case ExpressionTag.ReturnStatement: {
+                        enterNode(node, visitors, currentPath);
+                        exitNode(node, visitors, currentPath);
+                        break;
+                    }
+                    case ExpressionTag.FunctionParameter: {
+                        enterNode(node, visitors, currentPath);
+                        exitNode(node, visitors, currentPath);
+                        break;
+                    }
+                    case ExpressionTag.FunctionSignature: {
+                        enterNode(node, visitors, currentPath);
+                        traverse(node.params, visitors, currentPath);
                         exitNode(node, visitors, currentPath);
                         break;
                     }
