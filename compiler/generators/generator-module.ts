@@ -86,6 +86,21 @@ export const ts: GeneratorModule = {
                     result += ',';
                 },
             },
+            ReadBuiltInType: {
+                enter(node) {
+                    result += `const ${node.id}: ${typeTransformer(node.type)} = stream.read${node.type.name}();\n`;
+                },
+            },
+            CreateType: {
+                enter(node) {
+                    result += `const ${node.id} = { ${node.type.props.map(p => p.name).join(',')} };\n`;
+                },
+            },
+            ReturnStatement: {
+                enter(node) {
+                    result += `return ${node.id};\n`;
+                },
+            },
         };
 
         function enterNode<T extends TargetAst.Node>(node: T, visitors: AstVisitor[], path: TargetAst.Node[]) {

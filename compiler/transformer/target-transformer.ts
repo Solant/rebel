@@ -39,7 +39,7 @@ function getReadFunctionDeclaration(type: CustomType): TargetAst.FunctionDeclara
 
     const createType: TargetAst.CreateType = {
         tag: ExpressionTag.CreateType,
-        name: type.name,
+        type: type,
         id: 'ret',
     };
 

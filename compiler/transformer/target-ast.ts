@@ -65,7 +65,7 @@ export interface ReadCustomType {
 
 export interface CreateType {
     tag: ExpressionTag.CreateType,
-    name: string,
+    type: CustomType,
     id: string,
 }
 
