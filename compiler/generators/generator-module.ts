@@ -91,6 +91,11 @@ export const ts: GeneratorModule = {
                     result += `const ${node.id}: ${typeTransformer(node.type)} = stream.read${node.type.name}();\n`;
                 },
             },
+            ReadCustomType: {
+                enter(node) {
+                    result += `const ${node.id}: ${node.type.name} = read${node.type.name}(stream);\n`;
+                }
+            },
             CreateType: {
                 enter(node) {
                     result += `const ${node.id} = { ${node.type.props.map(p => p.name).join(',')} };\n`;
@@ -151,6 +156,7 @@ export const ts: GeneratorModule = {
                         exitNode(node, visitors, currentPath);
                         break;
                     }
+                    case ExpressionTag.ReadCustomType:
                     case ExpressionTag.TypeFieldDeclaration:
                     case ExpressionTag.ReadBuiltInType:
                     case ExpressionTag.CreateType:
