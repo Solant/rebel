@@ -2,6 +2,7 @@ import * as TargetAst from '../transformer/target-ast';
 import { DiscriminateUnion, EnterExitVisitor } from '../visitor';
 import { BaseType, TypeTag } from '../transformer/ir-ast';
 import { TypeName } from '../builtInTypes';
+import { ExpressionTag } from '../transformer/target-ast';
 
 interface GeneratorModule {
     fileExtension: string,
@@ -50,13 +51,64 @@ export const ts: GeneratorModule = {
             },
             TypeFieldDeclaration: {
                 enter(node) {
-                    result += `    ${typeTransformer(node.type)}`;
+                    result += `    ${node.name}: ${typeTransformer(node.type)}`;
                 },
                 exit(node) {
                     result += ',\n';
                 }
             },
         };
+
+        function enterNode<T extends TargetAst.Node>(node: T, visitors: AstVisitor[], path: T[]) {
+            for (let visitor of visitors) {
+                const callback = visitor[node.tag] as EnterExitVisitor<T> | undefined;
+                if (callback && callback.enter) {
+                    callback.enter(node, path);
+                }
+            }
+        }
+
+        function exitNode<T extends TargetAst.Node>(node: T, visitors: AstVisitor[], path: T[]) {
+            for (let visitor of visitors) {
+                const callback = visitor[node.tag] as EnterExitVisitor<T> | undefined;
+                if (callback && callback.exit) {
+                    callback.exit(node, path);
+                }
+            }
+        }
+
+        function traverse(nodes: TargetAst.Node[], visitors: AstVisitor[], path: TargetAst.Node[]) {
+            nodes.forEach((node) => {
+                const currentPath = [...path, node];
+                switch (node.tag) {
+                    case ExpressionTag.Program: {
+                        enterNode(node, visitors, currentPath);
+                        traverse(node.declarations, visitors, currentPath);
+                        // traverse(node.functions, visitors, currentPath);
+                        exitNode(node, visitors, currentPath);
+                        break;
+                    }
+                    case ExpressionTag.TypeDeclaration: {
+                        enterNode(node, visitors, currentPath);
+                        traverse(node.fields, visitors, currentPath);
+                        exitNode(node, visitors, currentPath);
+                        break;
+                    }
+                    case ExpressionTag.TypeFieldDeclaration: {
+                        enterNode(node, visitors, currentPath);
+                        exitNode(node, visitors, currentPath);
+                        break;
+                    }
+
+                    default: {
+                        throw new TypeError(`${node.tag} is not implemented`);
+                        // assertNever(node);
+                    }
+                }
+            });
+        }
+
+        traverse([s], [a], []);
 
         return result;
     },
