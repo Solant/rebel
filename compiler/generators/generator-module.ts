@@ -104,8 +104,8 @@ export const ts: GeneratorModule = {
                 }
             },
             CreateType: {
-                enter(node) {
-                    result += `const ${node.id} = { ${node.type.props.map(p => p.name).join(',')} };\n`;
+                enter(node, path, scope) {
+                    result += `${'\t'.repeat(scope.level)}const ${node.id} = { ${node.type.props.map(p => p.name).join(',')} };\n`;
                 },
             },
             WriteBuiltInType: {
@@ -119,8 +119,8 @@ export const ts: GeneratorModule = {
                 },
             },
             ReturnStatement: {
-                enter(node) {
-                    result += `return ${node.id};\n`;
+                enter(node, path, scope) {
+                    result += `${'\t'.repeat(scope.level)}return ${node.id};\n`;
                 },
             },
         };
