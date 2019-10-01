@@ -40,7 +40,7 @@ function getWriteFunctionDeclaration(type: CustomType): TargetAst.FunctionDeclar
     return {
         tag: ExpressionTag.FunctionDeclaration,
         id: `write${type.name}`,
-        type: ``,
+        type: 'void',
         signature: {
             tag: ExpressionTag.FunctionSignature,
             params: [

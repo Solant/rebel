@@ -28,10 +28,12 @@ export interface TypeFieldDeclaration {
     type: BaseType,
 }
 
+export type Void = 'void';
+
 export interface FunctionDeclaration {
     tag: ExpressionTag.FunctionDeclaration,
     id: string,
-    type: string,
+    type: string | Void,
     signature: FunctionSignature,
     body: Array<ReadBuiltInType | ReadCustomType | ReadArrayType | CreateType | ReturnStatement | WriteBuiltInType | WriteCustomType>,
 }
