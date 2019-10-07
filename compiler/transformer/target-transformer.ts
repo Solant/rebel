@@ -1,4 +1,4 @@
-import { BaseType, CustomType, Field, isCustomType, TypeTag } from './ir-ast';
+import { BaseType, CustomType, Field, isBuiltInArray, isCustomType, TypeTag } from './ir-ast';
 import * as TargetAst from './target-ast';
 import { ExpressionTag, ReadArrayType, ReadBuiltInType, ReadCustomType } from './target-ast';
 
@@ -52,24 +52,36 @@ function getWriteFunctionDeclaration(type: CustomType): TargetAst.FunctionDeclar
     };
 }
 
-function getReadFunctionDeclaration(type: CustomType): TargetAst.FunctionDeclaration {
-    const props: Array<ReadCustomType | ReadBuiltInType | ReadArrayType> = type.props.map((prop)=> {
-        const propType = prop.type;
-        switch (propType.tag) {
-            case TypeTag.BuiltIn:
+function getReadExpr(id: string, type: BaseType): ReadCustomType | ReadBuiltInType | ReadArrayType {
+    switch (type.tag) {
+        case TypeTag.BuiltIn:
+            if (isBuiltInArray(type)) {
+                const expr = type.typeArgs.length || type.typeArgs.lengthOf;
                 return {
-                    tag: ExpressionTag.ReadBuiltInType,
-                    id: prop.name,
-                    type: propType,
-                };
-            case TypeTag.Custom:
-                return {
-                    tag: ExpressionTag.ReadCustomType,
-                    id: prop.name,
-                    type: propType,
+                    tag: ExpressionTag.ReadArrayType,
+                    id,
+                    sizeExpr: `< ${expr}`,
+                    read: getReadExpr('temp', type.typeArgs.type!),
+                    type: type,
                 }
-        }
-    });
+            }
+
+            return {
+                tag: ExpressionTag.ReadBuiltInType,
+                id,
+                type: type,
+            };
+        case TypeTag.Custom:
+            return {
+                tag: ExpressionTag.ReadCustomType,
+                id,
+                type,
+            }
+    }
+}
+
+function getReadFunctionDeclaration(type: CustomType): TargetAst.FunctionDeclaration {
+    const props: Array<ReadCustomType | ReadBuiltInType | ReadArrayType> = type.props.map(prop => getReadExpr(prop.name, prop.type));
 
     const createType: TargetAst.CreateType = {
         tag: ExpressionTag.CreateType,

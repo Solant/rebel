@@ -12,6 +12,7 @@ describe('a1', function () {
         default struct Test {
             size: i32;
             baz: Test2;
+            arra: array<i32, #size>;
         }
         `);
         const irAst = transformIR(ast);

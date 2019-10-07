@@ -1,7 +1,7 @@
 import * as TargetAst from '../transformer/target-ast';
 import { ExpressionTag } from '../transformer/target-ast';
 import { DiscriminateUnion, EnterExitVisitor } from '../visitor';
-import { BaseType, TypeTag } from '../transformer/ir-ast';
+import { BaseType, isBuiltInArray, TypeTag } from '../transformer/ir-ast';
 import { TypeName } from '../builtInTypes';
 
 interface GeneratorModule {
@@ -37,6 +37,9 @@ export const ts: GeneratorModule = {
 
             switch (type.tag) {
                 case TypeTag.BuiltIn:
+                    if (isBuiltInArray(type)) {
+                        return `${typeTransformer(type.typeArgs.type!)}[]`;
+                    }
                     return types[type.name];
                 case TypeTag.Custom:
                     return type.name;
@@ -123,6 +126,18 @@ export const ts: GeneratorModule = {
                     result += `${'\t'.repeat(scope.level)}return ${node.id};\n`;
                 },
             },
+            ReadArrayType: {
+                enter(node, path, scope) {
+                    result += `${'\t'.repeat(scope.level)}const ${node.id}: ${typeTransformer(node.type)} = [];\n`;
+                    result += `${'\t'.repeat(scope.level)}for (let i = 0; i ${node.sizeExpr}; i++) {\n`;
+                    scope.level += 1;
+                },
+                exit(node, path, scope) {
+                    result += `${'\t'.repeat(scope.level)}${node.id}.push(temp);\n`;
+                    scope.level -= 1;
+                    result += `${'\t'.repeat(scope.level)}}\n`;
+                },
+            },
         };
 
         function enterNode<T extends TargetAst.Node>(node: T, visitors: AstVisitor[], path: TargetAst.Node[], scope: VisitorScope) {
@@ -173,6 +188,12 @@ export const ts: GeneratorModule = {
                         exitNode(node, visitors, currentPath, scope);
                         break;
                     }
+                    case ExpressionTag.ReadArrayType: {
+                        enterNode(node, visitors, currentPath, scope);
+                        traverse([node.read], visitors, currentPath, scope);
+                        exitNode(node, visitors, currentPath, scope);
+                        break;
+                    }
                     case ExpressionTag.WriteCustomType:
                     case ExpressionTag.WriteBuiltInType:
                     case ExpressionTag.ReadCustomType:
@@ -187,7 +208,7 @@ export const ts: GeneratorModule = {
                     }
 
                     default: {
-                        throw new TypeError(`${node.tag} is not implemented`);
+                        // throw new TypeError(`${node.tag} is not implemented`);
                         // assertNever(node);
                     }
                 }

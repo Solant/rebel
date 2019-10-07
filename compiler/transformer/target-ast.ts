@@ -93,7 +93,8 @@ export interface ReturnStatement {
 export interface ReadArrayType {
     tag: ExpressionTag.ReadArrayType,
     id: string,
-    read: ReadBuiltInType | ReadCustomType,
+    type: BuiltInType,
+    read: ReadBuiltInType | ReadCustomType | ReadArrayType,
     sizeExpr: string,
 }
 
