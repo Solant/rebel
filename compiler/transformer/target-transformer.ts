@@ -1,6 +1,12 @@
 import { BaseType, CustomType, Field, isBuiltInArray, isCustomType, TypeTag } from './ir-ast';
 import * as TargetAst from './target-ast';
-import { ExpressionTag, ReadArrayType, ReadBuiltInType, ReadCustomType } from './target-ast';
+import {
+    ExpressionTag,
+    MainReadFunctionDeclaration, MainWriteFunctionDeclaration,
+    ReadArrayType,
+    ReadBuiltInType,
+    ReadCustomType
+} from './target-ast';
 
 function getTypeField(f: Field): TargetAst.TypeFieldDeclaration {
     return {
@@ -109,9 +115,23 @@ function getReadFunctionDeclaration(type: CustomType): TargetAst.FunctionDeclara
 export function transform(types: BaseType[]) {
     const customTypes = types.filter(isCustomType);
 
+    const mainType = types.filter(isCustomType).find(t => t.default)!;
+
+    const mainRead: MainReadFunctionDeclaration = {
+        tag: ExpressionTag.MainReadFunctionDeclaration,
+        type: mainType,
+    };
+
+    const mainWrite: MainWriteFunctionDeclaration = {
+        tag: ExpressionTag.MainWriteFunctionDeclaration,
+        type: mainType,
+    };
+
     const functions = [
         ...customTypes.map(getReadFunctionDeclaration),
         ...customTypes.map(getWriteFunctionDeclaration),
+        mainRead,
+        mainWrite,
     ];
 
     const result: TargetAst.Program = {

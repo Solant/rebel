@@ -138,6 +138,22 @@ export const ts: GeneratorModule = {
                     result += `${'\t'.repeat(scope.level)}}\n`;
                 },
             },
+            MainReadFunctionDeclaration: {
+                enter(node) {
+                    result += `export function read(buffer: Buffer): ${node.type.name} {\n`;
+                    result += `    const stream: BimoStream = new BimoStream(buffer);\n`;
+                    result += `    return read${node.type.name}(stream);\n`;
+                    result += `}\n`;
+                },
+            },
+            MainWriteFunctionDeclaration: {
+                enter(node) {
+                    result += `export function write(source: ${node.type.name}, buffer: Buffer): void {\n`;
+                    result += `    const stream: BimoStream = new BimoStream(buffer);\n`;
+                    result += `    write${node.type.name}(source, stream);\n`;
+                    result += `}\n`;
+                },
+            },
         };
 
         function enterNode<T extends TargetAst.Node>(node: T, visitors: AstVisitor[], path: TargetAst.Node[], scope: VisitorScope) {
@@ -194,6 +210,8 @@ export const ts: GeneratorModule = {
                         exitNode(node, visitors, currentPath, scope);
                         break;
                     }
+                    case ExpressionTag.MainReadFunctionDeclaration:
+                    case ExpressionTag.MainWriteFunctionDeclaration:
                     case ExpressionTag.WriteCustomType:
                     case ExpressionTag.WriteBuiltInType:
                     case ExpressionTag.ReadCustomType:
