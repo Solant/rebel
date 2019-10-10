@@ -1,4 +1,4 @@
-import { TypeName } from './builtInTypes';
+import { TypeName } from '../builtInTypes';
 
 export enum TypeTag {
     BuiltIn,

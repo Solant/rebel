@@ -1,1 +1,1 @@
-export { parse, transform, generate } from './compiler';
+export { compile } from './compiler';

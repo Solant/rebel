@@ -1,15 +1,22 @@
 import { parse } from './parser/document';
-import { transform } from './transformer';
-import { generate } from './generators/ts';
+import { transform as irTransform } from './transformer/ir-transformer';
+import { transform as targetTransform } from './transformer/target-transformer';
+
+import generate from './generators/generator-module';
+import ts from './generators/ts';
 import { CompilerOptions } from './options';
+import { DocumentAstNode } from './parser/ast';
+
+export function transform(ast: DocumentAstNode) {
+    return targetTransform(irTransform(ast));
+}
 
 export function compile(source: string, opts: CompilerOptions) {
     const ast = parse(source);
     const newAst = transform(ast);
-    return generate(newAst, opts);
+
+    const target = ts;
+    return generate(newAst, target);
 }
 
-export { transform } from './transformer';
-export { generate } from './generators/ts';
-export { parse } from './parser/document';
 export { CompileError, CodeGenerationError } from './assertions';

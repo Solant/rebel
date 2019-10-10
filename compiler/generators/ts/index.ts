@@ -1,296 +1,173 @@
-import { BaseType, BuiltInType, CustomType, Field, isBuiltInType, isCustomType, TypeTag } from '../../types';
-import { render } from 'mustache';
+import * as TargetAst from '../../transformer/target-ast';
+import { BaseType, isBuiltInArray, TypeTag } from '../../transformer/ir-ast';
+import { TypeName } from '../../builtInTypes';
+import { ExpressionTag } from '../../transformer/target-ast';
 import { injectedCode } from './runtime';
-import {assertNever, CodeGenerationError} from '../../assertions';
-import { CompilerOptions } from '../../options';
+import { capitalize, GeneratorModule } from '../generator-module';
 
-interface NativeTypeInfo {
-    name: string,
-    defaultValue: any,
-}
-
-const nativeTypeMap: Map<string, NativeTypeInfo> = new Map();
-nativeTypeMap.set('i8', { name: 'number', defaultValue: 0 });
-nativeTypeMap.set('i16', { name: 'number', defaultValue: 0 });
-nativeTypeMap.set('i32', { name: 'number', defaultValue: 0 });
-nativeTypeMap.set('i64', { name: 'number', defaultValue: 0 });
-
-nativeTypeMap.set('u8', { name: 'number', defaultValue: 0 });
-nativeTypeMap.set('u16', { name: 'number', defaultValue: 0 });
-nativeTypeMap.set('u32', { name: 'number', defaultValue: 0 });
-nativeTypeMap.set('u64', { name: 'number', defaultValue: 0 });
-
-function generateInterface(type: CustomType): string {
-    return render(`
-export interface {{name}} {
-    {{#fields}}
-    {{{.}}},
-    {{/fields}}
-}
-    `, {
-        name: type.name,
-        fields: type.props.map(fieldDeclaration).filter(Boolean),
-    });
-}
-
-function capitalize() {
-    return function (text: string, render: Function): string {
-        return capitalizeNative(render(text));
-    }
-}
-
-function capitalizeNative(text: string): string {
-    return text.charAt(0).toUpperCase() + text.slice(1);
-}
-
-function generateStructRead(type: CustomType): string {
-    return render(`
-export function read{{#capitalize}}{{name}}{{/capitalize}}(stream: BimoStream): {{name}} {
-    const var1: {{name}} = {
-        {{#definitions}}
-        {{{.}}},
-        {{/definitions}}
+function typeTransformer(type: BaseType): string {
+    type TypeMap = { [key in TypeName]: string };
+    const types: TypeMap = {
+        i8: 'number',
+        i16: 'number',
+        i32: 'number',
+        i64: 'number',
+        u8: 'number',
+        u16: 'number',
+        u32: 'number',
+        u64: 'number',
+        array: '[]',
     };
-    
-    {{#reads}}
-    {{{.}}}
-    {{/reads}}
-    
-    return var1;
-}
-    `, {
-        name: type.name,
-        definitions: type.props.map(fieldDefaultDefenition).filter(Boolean),
-        reads: type.props.map(p => fieldRead('var1', p)),
-        capitalize,
-    });
-}
 
-function generateStructWrite(type: CustomType): string {
-    return render(`
-export function write{{#capitalize}}{{name}}{{/capitalize}}(stream: BimoStream, value: {{#capitalize}}{{name}}{{/capitalize}}): void {
-    
-    {{#writes}}
-    {{{.}}}
-    {{/writes}}
-}
-    `, {
-        name: type.name,
-        writes: type.props.map(p => fieldWrite('value', p, type)),
-        capitalize,
-    });
-}
-
-function generatemainStructWrite(type: CustomType): string {
-    return render(`
-export function write(buffer: Buffer, value: {{name}}): void {
-    const stream = new BimoStream(buffer);
-    
-    return write{{#capitalize}}{{name}}{{/capitalize}}(stream, value);
-}
-    `, {
-        name: type.name,
-        capitalize,
-    });
-}
-
-function generateMainStructRead(type: CustomType): string {
-    return render(`
-export function read(buffer: Buffer): {{name}} {
-    const stream = new BimoStream(buffer);
-    
-    return read{{#capitalize}}{{name}}{{/capitalize}}(stream);
-}
-    `, {
-        name: type.name,
-        capitalize,
-    });
-}
-
-interface GeneratorOutput {
-    fileExtension: string,
-    fileContent: string,
-}
-export function generate(types: BaseType[], options: CompilerOptions): GeneratorOutput {
-    let code = '';
-
-    if (options.emitRuntime) {
-        code += injectedCode();
-    }
-
-    code += types
-        .filter(isCustomType)
-        .map(generateInterface)
-        .join('\n');
-
-    code += types
-        .filter(isCustomType)
-        .map(t => ([generateStructRead(t), generateStructWrite(t)]))
-        .reduce((acc, val) => acc.concat(val), [])
-        .join('\n');
-
-    code += types
-        .filter(isCustomType)
-        .filter(t => t.default)
-        .map(t => ([generateMainStructRead(t), generatemainStructWrite(t)]))
-        .reduce((acc, val) => acc.concat(val), [])
-        .join('\n');
-
-    return { fileExtension: 'ts', fileContent: code };
-}
-
-/**
- * Generate structure field declaration
- * @param field
- */
-export function fieldDeclaration(field: Field): string | undefined {
-    if (field.access === 'public') {
-        return `${field.name}: ${typeDeclaration(field.type)}`;
-    }
-}
-
-/**
- * Generate structure field default value
- * @param field
- */
-function fieldDefaultDefenition(field: Field): string | undefined {
-    if (field.access === 'private') {
-        return undefined;
-    }
-    switch (field.type.tag) {
-        case TypeTag.BuiltIn: {
-            return `${field.name}: ${defaultTypeValue(field.type)}`;
-        }
-        case TypeTag.Custom: {
-            return `// @ts-ignore
-            ${field.name}: ${defaultTypeValue(field.type)}`;
-        }
-    }
-}
-
-function fieldRead(parent: string, field: Field): string {
-    let result = '';
-
-    if (isBuiltInType(field.type) && field.type.name === 'array') {
-        let range = '';
-        if (field.type.typeArgs.lengthOf) {
-            range = field.type.typeArgs.lengthOf;
-        } else {
-            range = field.type.typeArgs.length!.toString();
-        }
-        result += `
-    for (let i = 0; i < ${range}; i++) {
-        ${parent}.${field.name}.push(${typeIOFunction(field.type.typeArgs.type!, 'read')}());
-    }
-`;
-    } else {
-        if (field.access === 'private') {
-            result += `const ${field.name} = `
-        } else {
-            result += `${parent}.${field.name} = `
-        }
-        if (isCustomType(field.type)) {
-            result += `${typeIOFunction(field.type, 'read')}(stream)`;
-        } else {
-            result += `${typeIOFunction(field.type, 'read')}()`;
-        }
-    }
-    return result;
-}
-
-function fieldWrite(parent: string, field: Field, type: CustomType): string {
-    let result = '';
-    if (isBuiltInType(field.type) && field.type.name === 'array') {
-        result +=
-`
-    for (let i = 0; i < ${parent}.${field.name}.length; i++) {
-        ${typeIOFunction(field.type.typeArgs.type!, 'write')}(${parent}.${field.name}[i]);
-    }
-`;
-    } else {
-        if (field.access === 'private') {
-            let a = type.props.find(f => (<BuiltInType>f.type).typeArgs.lengthOf === field.name);
-            result += `${typeIOFunction(field.type, 'write')}(${parent}.${a!.name}.length)`;
-        } else {
-            if (isCustomType(field.type)) {
-                result += `${typeIOFunction(field.type, 'write')}(stream, ${parent}.${field.name})`;
-            } else {
-                result += `${typeIOFunction(field.type, 'write')}(${parent}.${field.name})`;
+    switch (type.tag) {
+        case TypeTag.BuiltIn:
+            if (isBuiltInArray(type)) {
+                return `${typeTransformer(type.typeArgs.type!)}[]`;
             }
-        }
+            return types[type.name];
+        case TypeTag.Custom:
+            return type.name;
     }
-    return result;
 }
 
-function typeDeclaration(type: BaseType): string {
-    if (isBuiltInType(type)) {
-        switch (type.name) {
-            case 'i8':
-            case 'i16':
-            case 'i32':
-            case 'i64':
-            case 'u8':
-            case 'u16':
-            case 'u32':
-            case 'u64': {
-                return 'number';
+export const ts: GeneratorModule = {
+    fileExtension: 'ts',
+    language: 'TypeScript',
+    visitor: [{
+        TypeDeclaration: {
+            enter(node, path, scope) {
+                scope.level += 1;
+                scope.result += `export interface ${node.name} {\n`;
+            },
+            exit(node, path, scope) {
+                scope.level -= 1;
+                scope.result += '}\n';
             }
-            case 'array': {
-                const childType = type.typeArgs.type;
-                if (childType === undefined) {
-                    throw new CodeGenerationError('Array is not supported');
+        },
+        TypeFieldDeclaration: {
+            enter(node, path, scope) {
+                if (node.public) {
+                    scope.result += `${'\t'.repeat(scope.level)}${node.name}: ${typeTransformer(node.type)}`;
                 }
-                return `${typeDeclaration(childType)}[]`;
-            }
-            default: {
-                assertNever(type.name);
-                return '';
-            }
-        }
-    } else {
-        return `${type.name}`
-    }
-}
-
-function defaultTypeValue(type: BaseType): string {
-    if (isBuiltInType(type)) {
-        switch (type.name) {
-            case 'i8':
-            case 'i16':
-            case 'i32':
-            case 'i64':
-            case 'u8':
-            case 'u16':
-            case 'u32':
-            case 'u64': {
-                return '0';
-            }
-            case 'array': {
-                const childType = type.typeArgs.type;
-                if (childType === undefined) {
-                    throw new CodeGenerationError('No child type found on array field');
+            },
+            exit(node, path, scope) {
+                if (node.public) {
+                    scope.result += ',\n';
                 }
-                return '[]';
             }
-            default: {
-                assertNever(type.name);
-                return '';
+        },
+        FunctionDeclaration: {
+            enter(node, path, scope) {
+                scope.level += 1;
+                scope.result += `function ${node.id}`;
+            },
+            exit(node, path, scope) {
+                scope.level -= 1;
+                scope.result += '}\n';
+            },
+        },
+        FunctionSignature: {
+            enter(node, path, scope) {
+                scope.result += '(';
+            },
+            exit(node, path, scope) {
+                const {type} = path.find(t => t.tag === ExpressionTag.FunctionDeclaration)! as TargetAst.FunctionDeclaration;
+                scope.result += `): ${type} {\n`;
+            },
+        },
+        FunctionParameter: {
+            enter(node, path, scope) {
+                if (node.type === 'BimoStream') {
+                    scope.result += `${node.id}: ${node.type}`;
+                } else {
+                    scope.result += `${node.id}: ${typeTransformer(node.type)}`;
+                }
+            },
+            exit(node, path, scope) {
+                scope.result += ',';
+            },
+        },
+        ReadBuiltInType: {
+            enter(node, path, scope) {
+                scope.result += `${'\t'.repeat(scope.level)}const ${node.id}: ${typeTransformer(node.type)} = stream.read${capitalize(node.type.name)}();\n`;
+            },
+        },
+        ReadCustomType: {
+            enter(node, path, scope) {
+                scope.result += `${'\t'.repeat(scope.level)}const ${node.id}: ${node.type.name} = read${node.type.name}(stream);\n`;
             }
-        }
-    } else {
-        return 'undefined';
-    }
-}
+        },
+        CreateType: {
+            enter(node, path, scope) {
+                scope.result += `${'\t'.repeat(scope.level)}const ${node.id} = { ${node.type.props.map(p => p.name).join(',')} };\n`;
+            },
+        },
+        WriteBuiltInType: {
+            enter(node, path, scope) {
+                if (node.computed.lengthOf) {
+                    scope.result += `${'\t'.repeat(scope.level)}stream.write${capitalize(node.type.name)}(struct.${node.computed.lengthOf}.length);\n`;
+                } else {
+                    scope.result += `${'\t'.repeat(scope.level)}stream.write${capitalize(node.type.name)}(struct.${node.id});\n`;
+                }
+            },
+        },
+        WriteCustomType: {
+            enter(node, path, scope) {
+                scope.result += `${'\t'.repeat(scope.level)}write${node.type.name}(struct.${node.id}, stream);\n`;
+            },
+        },
+        ReturnStatement: {
+            enter(node, path, scope) {
+                scope.result += `${'\t'.repeat(scope.level)}return ${node.id};\n`;
+            },
+        },
+        ReadArrayType: {
+            enter(node, path, scope) {
+                scope.result += `${'\t'.repeat(scope.level)}const ${node.id}: ${typeTransformer(node.type)} = [];\n`;
+                scope.result += `${'\t'.repeat(scope.level)}for (let i = 0; i ${node.sizeExpr}; i++) {\n`;
+                scope.level += 1;
+            },
+            exit(node, path, scope) {
+                scope.result += `${'\t'.repeat(scope.level)}${node.id}.push(temp);\n`;
+                scope.level -= 1;
+                scope.result += `${'\t'.repeat(scope.level)}}\n`;
+            },
+        },
+        WriteArrayType: {
+            enter(node, path, scope) {
+                let expr: string = '';
+                if (node.typeArg.length) {
+                    expr = `${node.typeArg.length}`;
+                } else if (node.typeArg.lengthOf) {
+                    expr = `struct.${node.id}.length`;
+                }
 
-type IO = 'read' | 'write';
-function typeIOFunction(type: BaseType, flag: IO): string {
-    if (isBuiltInType(type)) {
-        if (type.name === 'array') {
-            throw new CodeGenerationError('Array is not supported');
-        } else {
-            return `stream.${flag}${capitalizeNative(type.name)}`
-        }
-    } else {
-        return `${flag}${capitalizeNative(type.name)}`
-    }
-}
+                scope.result += `${'\t'.repeat(scope.level)}for (let i = 0; i < ${expr}; i++) {\n`;
+                scope.level += 1;
+            },
+            exit(node, path, scope) {
+                scope.level -= 1;
+                scope.result += `${'\t'.repeat(scope.level)}}\n`;
+            },
+        },
+        MainReadFunctionDeclaration: {
+            enter(node, path, scope) {
+                scope.result += `export function read(buffer: Buffer): ${node.type.name} {\n`;
+                scope.result += `    const stream: BimoStream = new BimoStream(buffer);\n`;
+                scope.result += `    return read${node.type.name}(stream);\n`;
+                scope.result += `}\n`;
+            },
+        },
+        MainWriteFunctionDeclaration: {
+            enter(node, path, scope) {
+                scope.result += `export function write(buffer: Buffer, source: ${node.type.name}): void {\n`;
+                scope.result += `    const stream: BimoStream = new BimoStream(buffer);\n`;
+                scope.result += `    write${node.type.name}(source, stream);\n`;
+                scope.result += `}\n`;
+            },
+        },
+    }],
+    injects: injectedCode,
+};
+
+export default ts;
