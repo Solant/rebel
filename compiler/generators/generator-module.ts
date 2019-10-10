@@ -143,6 +143,23 @@ export const ts: GeneratorModule = {
                     result += `${'\t'.repeat(scope.level)}}\n`;
                 },
             },
+            WriteArrayType: {
+                enter(node, path, scope) {
+                    let expr: string = '';
+                    if (node.typeArg.length) {
+                        expr = `${node.typeArg.length}`;
+                    } else if (node.typeArg.lengthOf) {
+                        expr = `struct.${node.id}.length`;
+                    }
+
+                    result += `${'\t'.repeat(scope.level)}for (let i = 0; i < ${expr}; i++) {\n`;
+                    scope.level += 1;
+                },
+                exit(node, path, scope) {
+                    scope.level -= 1;
+                    result += `${'\t'.repeat(scope.level)}}\n`;
+                },
+            },
             MainReadFunctionDeclaration: {
                 enter(node) {
                     result += `export function read(buffer: Buffer): ${node.type.name} {\n`;
@@ -212,6 +229,12 @@ export const ts: GeneratorModule = {
                     case ExpressionTag.ReadArrayType: {
                         enterNode(node, visitors, currentPath, scope);
                         traverse([node.read], visitors, currentPath, scope);
+                        exitNode(node, visitors, currentPath, scope);
+                        break;
+                    }
+                    case ExpressionTag.WriteArrayType: {
+                        enterNode(node, visitors, currentPath, scope);
+                        traverse([node.write], visitors, currentPath, scope);
                         exitNode(node, visitors, currentPath, scope);
                         break;
                     }

@@ -1,4 +1,4 @@
-import { BaseType, BuiltInType, CustomType } from './ir-ast';
+import { BaseType, BuiltInType, CustomType, TypeArgument } from './ir-ast';
 
 export enum ExpressionTag {
     MainWriteFunctionDeclaration = 'MainWriteFunctionDeclaration',
@@ -10,6 +10,7 @@ export enum ExpressionTag {
     CreateType = 'CreateType',
     ReturnStatement = 'ReturnStatement',
     ReadArrayType = 'ReadArrayType',
+    WriteArrayType = 'WriteArrayType',
     ReadCustomType = 'ReadCustomType',
     FunctionDeclaration = 'FunctionDeclaration',
     ReadBuiltInType = 'ReadBuiltInType',
@@ -37,7 +38,7 @@ export interface FunctionDeclaration {
     id: string,
     type: string | Void,
     signature: FunctionSignature,
-    body: Array<ReadBuiltInType | ReadCustomType | ReadArrayType | CreateType | ReturnStatement | WriteBuiltInType | WriteCustomType>,
+    body: Array<ReadBuiltInType | ReadCustomType | ReadArrayType | CreateType | ReturnStatement | WriteBuiltInType | WriteCustomType | WriteArrayType>,
 }
 
 export interface FunctionSignature {
@@ -102,6 +103,13 @@ export interface ReadArrayType {
     sizeExpr: string,
 }
 
+export interface WriteArrayType {
+    tag: ExpressionTag.WriteArrayType,
+    id: string,
+    typeArg: TypeArgument,
+    write: WriteArrayType | WriteCustomType | WriteBuiltInType,
+}
+
 export interface MainReadFunctionDeclaration {
     tag: ExpressionTag.MainReadFunctionDeclaration,
     type: CustomType,
@@ -126,4 +134,5 @@ export type Node = CreateType
     | WriteCustomType
     | WriteBuiltInType
     | MainReadFunctionDeclaration
-    | MainWriteFunctionDeclaration;
+    | MainWriteFunctionDeclaration
+    | WriteArrayType;

@@ -5,7 +5,7 @@ import {
     MainReadFunctionDeclaration, MainWriteFunctionDeclaration,
     ReadArrayType,
     ReadBuiltInType,
-    ReadCustomType
+    ReadCustomType, WriteArrayType, WriteBuiltInType, WriteCustomType
 } from './target-ast';
 
 function getTypeField(f: Field): TargetAst.TypeFieldDeclaration {
@@ -24,24 +24,33 @@ function getTypeDeclaration(type: CustomType): TargetAst.TypeDeclaration {
     }
 }
 
-function getWriteFunctionDeclaration(type: CustomType): TargetAst.FunctionDeclaration {
-    const props: Array<TargetAst.WriteCustomType | TargetAst.WriteBuiltInType> = type.props.map((prop)=> {
-        const propType = prop.type;
-        switch (propType.tag) {
-            case TypeTag.BuiltIn:
+function getWriteExpr(id: string, type: BaseType): WriteArrayType | WriteBuiltInType | WriteCustomType {
+    switch (type.tag) {
+        case TypeTag.BuiltIn:
+            if (isBuiltInArray(type)) {
                 return {
-                    tag: ExpressionTag.WriteBuiltInType,
-                    id: prop.name,
-                    type: propType,
+                    tag: ExpressionTag.WriteArrayType,
+                    id,
+                    typeArg: type.typeArgs,
+                    write: getWriteExpr(`${id}[i]`, type.typeArgs.type!),
                 };
-            case TypeTag.Custom:
-                return {
-                    tag: ExpressionTag.WriteCustomType,
-                    id: prop.name,
-                    type: propType,
-                }
-        }
-    });
+            }
+            return {
+                tag: ExpressionTag.WriteBuiltInType,
+                id,
+                type,
+            };
+        case TypeTag.Custom:
+            return {
+                tag: ExpressionTag.WriteCustomType,
+                id,
+                type,
+            }
+    }
+}
+
+function getWriteFunctionDeclaration(type: CustomType): TargetAst.FunctionDeclaration {
+    const props: Array<TargetAst.WriteCustomType | TargetAst.WriteBuiltInType | TargetAst.WriteArrayType> = type.props.map(p => getWriteExpr(p.name, p.type));
 
     return {
         tag: ExpressionTag.FunctionDeclaration,
