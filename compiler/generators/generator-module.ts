@@ -64,10 +64,14 @@ export const ts: GeneratorModule = {
             },
             TypeFieldDeclaration: {
                 enter(node, path, scope) {
-                    result += `${'\t'.repeat(scope.level)}${node.name}: ${typeTransformer(node.type)}`;
+                    if (node.public) {
+                        result += `${'\t'.repeat(scope.level)}${node.name}: ${typeTransformer(node.type)}`;
+                    }
                 },
                 exit(node) {
-                    result += ',\n';
+                    if (node.public) {
+                        result += ',\n';
+                    }
                 }
             },
             FunctionDeclaration: {
@@ -118,7 +122,11 @@ export const ts: GeneratorModule = {
             },
             WriteBuiltInType: {
                 enter(node, path, scope) {
-                    result += `${'\t'.repeat(scope.level)}stream.write${capitalize(node.type.name)}(struct.${node.id});\n`;
+                    if (node.computed.lengthOf) {
+                        result += `${'\t'.repeat(scope.level)}stream.write${capitalize(node.type.name)}(struct.${node.computed.lengthOf}.length);\n`;
+                    } else {
+                        result += `${'\t'.repeat(scope.level)}stream.write${capitalize(node.type.name)}(struct.${node.id});\n`;
+                    }
                 },
             },
             WriteCustomType: {

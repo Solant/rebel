@@ -29,6 +29,7 @@ export interface TypeFieldDeclaration {
     tag: ExpressionTag.TypeFieldDeclaration,
     name: string,
     type: BaseType,
+    public: boolean,
 }
 
 export type Void = 'void';
@@ -70,6 +71,9 @@ export interface WriteBuiltInType {
     tag: ExpressionTag.WriteBuiltInType,
     id: string,
     type: BuiltInType,
+    computed: {
+        lengthOf?: string,
+    },
 }
 
 export interface WriteCustomType {

@@ -1,11 +1,15 @@
-import { BaseType, CustomType, Field, isBuiltInArray, isCustomType, TypeTag } from './ir-ast';
+import { BaseType, BuiltInType, CustomType, Field, isBuiltInArray, isCustomType, TypeTag } from './ir-ast';
 import * as TargetAst from './target-ast';
 import {
     ExpressionTag,
-    MainReadFunctionDeclaration, MainWriteFunctionDeclaration,
+    MainReadFunctionDeclaration,
+    MainWriteFunctionDeclaration,
     ReadArrayType,
     ReadBuiltInType,
-    ReadCustomType, WriteArrayType, WriteBuiltInType, WriteCustomType
+    ReadCustomType,
+    WriteArrayType,
+    WriteBuiltInType,
+    WriteCustomType
 } from './target-ast';
 
 function getTypeField(f: Field): TargetAst.TypeFieldDeclaration {
@@ -13,6 +17,7 @@ function getTypeField(f: Field): TargetAst.TypeFieldDeclaration {
         tag: ExpressionTag.TypeFieldDeclaration,
         name: f.name,
         type: f.type,
+        public: f.access === 'public',
     };
 }
 
@@ -39,6 +44,7 @@ function getWriteExpr(id: string, type: BaseType): WriteArrayType | WriteBuiltIn
                 tag: ExpressionTag.WriteBuiltInType,
                 id,
                 type,
+                computed: {},
             };
         case TypeTag.Custom:
             return {
@@ -51,6 +57,23 @@ function getWriteExpr(id: string, type: BaseType): WriteArrayType | WriteBuiltIn
 
 function getWriteFunctionDeclaration(type: CustomType): TargetAst.FunctionDeclaration {
     const props: Array<TargetAst.WriteCustomType | TargetAst.WriteBuiltInType | TargetAst.WriteArrayType> = type.props.map(p => getWriteExpr(p.name, p.type));
+
+    function isWriteBuiltInType(n: TargetAst.Node): n is TargetAst.WriteBuiltInType {
+        return n.tag === ExpressionTag.WriteBuiltInType;
+    }
+
+    const computedProps = type.props
+        .filter(p => p.type.tag === TypeTag.BuiltIn && p.type.typeArgs.lengthOf);
+
+    props
+        .filter(isWriteBuiltInType)
+        .forEach(t => {
+            // @ts-ignore
+            const prop = computedProps.find(p => p.type.typeArgs!.lengthOf === t.id);
+            if (prop) {
+                t.computed.lengthOf = prop.name;
+            }
+        });
 
     return {
         tag: ExpressionTag.FunctionDeclaration,
