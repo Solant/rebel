@@ -5,16 +5,18 @@ import { transform as targetTransform } from './transformer/target-transformer';
 import generate from './generators/generator-module';
 import ts from './generators/ts';
 import { CompilerOptions } from './options';
+import { DocumentAstNode } from './parser/ast';
+
+export function transform(ast: DocumentAstNode) {
+    return targetTransform(irTransform(ast));
+}
 
 export function compile(source: string, opts: CompilerOptions) {
     const ast = parse(source);
-    const newAst = targetTransform(irTransform(ast));
+    const newAst = transform(ast);
 
     const target = ts;
-
     return generate(newAst, target);
 }
 
-export { transform } from './transformer/ir-transformer';
-export { parse } from './parser/document';
 export { CompileError, CodeGenerationError } from './assertions';
