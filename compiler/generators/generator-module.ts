@@ -55,7 +55,7 @@ export const ts: GeneratorModule = {
             TypeDeclaration: {
                 enter(node, path, scope) {
                     scope.level += 1;
-                    result += `interface ${node.name} {\n`;
+                    result += `export interface ${node.name} {\n`;
                 },
                 exit(node, path, scope) {
                     scope.level -= 1;
@@ -170,7 +170,7 @@ export const ts: GeneratorModule = {
             },
             MainWriteFunctionDeclaration: {
                 enter(node) {
-                    result += `export function write(source: ${node.type.name}, buffer: Buffer): void {\n`;
+                    result += `export function write(buffer: Buffer, source: ${node.type.name}): void {\n`;
                     result += `    const stream: BimoStream = new BimoStream(buffer);\n`;
                     result += `    write${node.type.name}(source, stream);\n`;
                     result += `}\n`;
