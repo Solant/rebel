@@ -1,6 +1,7 @@
-import { generate, parse, transform as transformIR } from '../../index';
+import { parse, transform as transformIR } from '../../index';
 import { transform as transformTarget } from '../transformer/target-transformer';
-import { ts } from './generator-module';
+import ts from './ts';
+import generate from './generator-module';
 
 describe('a1', function () {
     it('should work', () => {
@@ -17,6 +18,6 @@ describe('a1', function () {
         `);
         const irAst = transformIR(ast);
         const targetAst = transformTarget(irAst);
-        console.log(ts.generate(targetAst));
+        generate(targetAst, ts);
     });
 });
