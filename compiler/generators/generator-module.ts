@@ -3,6 +3,7 @@ import { ExpressionTag } from '../transformer/target-ast';
 import { DiscriminateUnion, EnterExitVisitor } from '../visitor';
 import { BaseType, isBuiltInArray, TypeTag } from '../transformer/ir-ast';
 import { TypeName } from '../builtInTypes';
+import { injectedCode } from './ts/runtime';
 
 interface GeneratorModule {
     fileExtension: string,
@@ -14,6 +15,10 @@ interface VisitorScope {
     level: number,
 }
 type AstVisitor = { [key in TargetAst.ExpressionTag]?: EnterExitVisitor<DiscriminateUnion<TargetAst.Node, 'tag', key>, TargetAst.Node, VisitorScope> };
+
+function capitalize(s: string): string {
+    return s.charAt(0).toUpperCase() + s.slice(1);
+}
 
 export const ts: GeneratorModule = {
     fileExtension: 'ts',
@@ -98,7 +103,7 @@ export const ts: GeneratorModule = {
             },
             ReadBuiltInType: {
                 enter(node, path, scope) {
-                    result += `${'\t'.repeat(scope.level)}const ${node.id}: ${typeTransformer(node.type)} = stream.read${node.type.name}();\n`;
+                    result += `${'\t'.repeat(scope.level)}const ${node.id}: ${typeTransformer(node.type)} = stream.read${capitalize(node.type.name)}();\n`;
                 },
             },
             ReadCustomType: {
@@ -113,7 +118,7 @@ export const ts: GeneratorModule = {
             },
             WriteBuiltInType: {
                 enter(node, path, scope) {
-                    result += `${'\t'.repeat(scope.level)}stream.write${node.type.name}(struct.${node.id});\n`;
+                    result += `${'\t'.repeat(scope.level)}stream.write${capitalize(node.type.name)}(struct.${node.id});\n`;
                 },
             },
             WriteCustomType: {
@@ -234,6 +239,8 @@ export const ts: GeneratorModule = {
         }
 
         traverse([s], [a], [], { level: 0 });
+
+        result += injectedCode();
 
         return result;
     },
