@@ -1,9 +1,9 @@
 import { transform } from './target-transformer';
 import { TypeTag } from './ir-ast';
 
-describe('asd', () => {
-    it('aaa', () => {
-        console.log(JSON.stringify(transform([{
+describe('Target transformer', () => {
+    it('should not fail', () => {
+        expect(() => transform([{
             tag: TypeTag.Custom,
             name: 'TestType',
             default: true,
@@ -16,6 +16,6 @@ describe('asd', () => {
                     typeArgs: {},
                 },
             }],
-        }]), undefined, 2));
+        }])).not.toThrow();
     });
 });
