@@ -8,7 +8,7 @@ import { CompilerOptions } from './options';
 export function compile(source: string, opts: CompilerOptions) {
     const ast = parse(source);
     const newAst = targetTransform(irTransform(ast));
-    return { fileContent: ts.generate(newAst) };
+    return { fileContent: ts.generate(newAst), fileExtension: ts.fileExtension };
 }
 
 export { transform } from './transformer/ir-transformer';
