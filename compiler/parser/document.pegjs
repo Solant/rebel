@@ -75,7 +75,7 @@ ParametrizedType = typeName:TypeName '<' args:TypeArg+ '>' {
     }
 }
 
-Declaration = FieldDeclaration
+Declaration = ComputedFieldDeclaration / FieldDeclaration
 
 FieldDeclaration = _ variable:VarName _ ':' _ fieldType:Type _ ';' {
     return {
@@ -84,6 +84,60 @@ FieldDeclaration = _ variable:VarName _ ':' _ fieldType:Type _ ';' {
         name: variable.join(''),
         fieldType: fieldType
     }
+}
+
+ComputedFieldDeclaration = _ variable:VarName _ ':' _ fieldType:Type _ '=' _ expr:ExpressionBody _ ';' {
+    return {
+        type: 'computedfield',
+        pos: location().start,
+        name: variable.join(''),
+        fieldType: fieldType,
+        expr: expr,
+    }
+}
+
+ExpressionBody = additive
+
+additive
+  = first:multiplicative rest:(("+" / "-") multiplicative)+ {
+    return rest.reduce(function(memo: any, curr: any) {
+      return {
+        tag: 'BinaryOperator',
+        op: curr[0], left: memo, right: curr[1]
+      };
+    }, first);
+  }
+  / multiplicative
+
+multiplicative
+  = first:primary rest:(("*" / "/") primary)+ {
+    return rest.reduce(function(memo: any, curr: any) {
+      return {
+        tag: 'BinaryOperator',
+        op: curr[0], left: memo, right: curr[1]
+      };
+    }, first);
+  }
+  / primary
+
+primary
+  = number / fun / var
+  / "(" additive:additive ")" { return additive; }
+
+fun = name:[a-zA-Z]+ '(' body:var ')' {
+ return {
+     type: 'Function',
+        name: name.join(''),
+        body: body,
+    }
+}
+
+var = [a-zA-Z0-9]+ {
+    return { type: 'Var', value: text() }
+}
+
+number = digits:[0-9]+ {
+    return { type: 'Number', value: parseInt(digits.join(""), 10) };
 }
 
 _ "whitespace" = [ \t\n\r]*
