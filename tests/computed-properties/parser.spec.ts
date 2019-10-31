@@ -1,7 +1,7 @@
 import { parse } from '../../compiler/parser/document';
 import * as Ast from '../../compiler/parser/ast';
 import { transform as transformIR } from '../../compiler/transformer/ir-transformer';
-import { CustomType } from '../../compiler/transformer/ir-ast';
+import { ComputedField, CustomType } from '../../compiler/transformer/ir-ast';
 
 describe('Parser', function () {
     it('should parse', () => {
@@ -33,6 +33,19 @@ describe('Parser', function () {
 
         it('should create prop', () => {
             expect((types[0] as CustomType).props[0].name).toBe('length');
-        })
+        });
+
+        it('should add expression', () => {
+            expect(((types[0] as CustomType).props[0] as ComputedField).expression).toEqual({
+                type: 'BinaryOperator',
+                op: '+',
+                left: {type: 'Number', value: 3},
+                right: {
+                    type: 'Function',
+                    name: 'lengthof',
+                    body: {type: 'Var', value: 'body'}
+                }
+            });
+        });
     });
 });
