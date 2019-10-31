@@ -1,5 +1,7 @@
 import { parse } from '../../compiler/parser/document';
 import * as Ast from '../../compiler/parser/ast';
+import { transform as transformIR } from '../../compiler/transformer/ir-transformer';
+import { CustomType } from '../../compiler/transformer/ir-ast';
 
 describe('Parser', function () {
     it('should parse', () => {
@@ -10,7 +12,7 @@ describe('Parser', function () {
         `);
 
         expect((result.structures[0].fields[0] as Ast.ComputedFieldAstNode).expr).toEqual({
-            tag: 'BinaryOperator',
+            type: 'BinaryOperator',
             op: '+',
             left: {type: 'Number', value: 3},
             right: {
@@ -19,5 +21,18 @@ describe('Parser', function () {
                 body: {type: 'Var', value: 'body'}
             }
         });
+    });
+
+    describe('IR transformer', () => {
+        const res = parse(`
+        default struct Test {
+            length: i32 = 3+lengthof(body);
+        }
+        `);
+        const types = transformIR(res);
+
+        it('should create prop', () => {
+            expect((types[0] as CustomType).props[0].name).toBe('length');
+        })
     });
 });

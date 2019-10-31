@@ -5,9 +5,12 @@ export enum AstNodeType {
     Document = 'document',
     SimpleType = 'simpletype',
     ParametrizedType = 'parametrizedtype',
-    Number = 'number',
     Endianness = 'endianness',
-    FieldRef = 'fieldref'
+    FieldRef = 'fieldref',
+    BinaryOperator = 'BinaryOperator',
+    Variable = 'Var',
+    Number = 'Number',
+    Function = 'Function',
 }
 
 export interface NodePosition {
@@ -79,35 +82,31 @@ export type AstNode = StructureAstNode
     | ParamFieldTypeAstNode
     | NumberLiteralAstNode
     | EndiannessLiteralAstNode
-    | FieldRefAstNode;
+    | FieldRefAstNode
+    | Expression.ExpressionNode;
 
-namespace Expression {
-    export enum Tag {
-        BinaryOperator = 'BinaryOperator',
-        Variable = 'Variable',
-        Number = 'Number',
-        Function = 'Function',
-    }
-
+export namespace Expression {
     export interface Variable {
-        tag: Tag.Variable,
+        type: AstNodeType.Variable,
         name: string
     }
 
     export interface Number {
-        tag: Tag.Number,
+        type: AstNodeType.Number,
         value: number,
     }
 
     export interface Function {
-        tag: Tag.Function,
+        type: AstNodeType.Function,
         name: string,
         body: Variable,
     }
 
     export interface BinaryOperator {
-        tag: Tag.BinaryOperator,
+        type: AstNodeType.BinaryOperator,
         op: '+' | '-' | '*' | '/',
+        left: ExpressionNode,
+        right: ExpressionNode,
     }
 
     export type ExpressionNode = Variable

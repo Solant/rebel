@@ -38,7 +38,7 @@ SimpleType = typeName:TypeName {
 
 NumberLiteral = [0-9]+ {
 	return {
-	    type: 'number',
+	    type: 'Number',
 	    pos: location().start,
 	    value: parseInt(text())
     };
@@ -102,7 +102,7 @@ additive
   = first:multiplicative rest:(("+" / "-") multiplicative)+ {
     return rest.reduce(function(memo: any, curr: any) {
       return {
-        tag: 'BinaryOperator',
+        type: 'BinaryOperator',
         op: curr[0], left: memo, right: curr[1]
       };
     }, first);
@@ -113,7 +113,7 @@ multiplicative
   = first:primary rest:(("*" / "/") primary)+ {
     return rest.reduce(function(memo: any, curr: any) {
       return {
-        tag: 'BinaryOperator',
+        type: 'BinaryOperator',
         op: curr[0], left: memo, right: curr[1]
       };
     }, first);

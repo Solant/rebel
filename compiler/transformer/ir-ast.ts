@@ -1,4 +1,6 @@
 import { TypeName } from '../builtInTypes';
+import { Expression } from '../parser/ast';
+import ExpressionNode = Expression.ExpressionNode;
 
 export enum TypeTag {
     BuiltIn,
@@ -43,4 +45,9 @@ export interface Field {
     name: string,
     access: 'public' | 'private',
     type: BaseType,
+}
+
+export interface ComputedField extends Field {
+    computed: true,
+    expression: Expression.ExpressionNode,
 }

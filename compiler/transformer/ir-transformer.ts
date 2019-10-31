@@ -1,4 +1,4 @@
-import { BaseType, CustomType, Field, isBuiltInArray, isBuiltInType, TypeTag } from './ir-ast';
+import { BaseType, ComputedField, CustomType, Field, isBuiltInArray, isBuiltInType, TypeTag } from './ir-ast';
 import {
     AstNode,
     AstNodeType,
@@ -7,8 +7,8 @@ import {
     ParamFieldTypeAstNode,
     SimpleFieldTypeAstNode
 } from '../parser/ast';
-import {isTypeName} from "../builtInTypes";
-import {assertNever, CompileError} from '../assertions';
+import { isTypeName } from '../builtInTypes';
+import { assertNever, CompileError } from '../assertions';
 
 type DiscriminateUnion<T, K extends keyof T, V extends T[K]> = T extends Record<K, V> ? T : never;
 
@@ -43,6 +43,31 @@ function traverse(nodes: AstNode[], visitors: AstNodeVisitor[], path: AstNode[])
             case AstNodeType.Structure: {
                 enterNode(node, visitors, currentPath);
                 traverse(node.fields, visitors, currentPath);
+                exitNode(node, visitors, currentPath);
+                break;
+            }
+            case AstNodeType.ComputedField: {
+                enterNode(node, visitors, currentPath);
+                traverse([node.fieldType], visitors, currentPath);
+                traverse([node.expr], visitors, currentPath);
+                exitNode(node, visitors, currentPath);
+                break;
+            }
+            case AstNodeType.BinaryOperator: {
+                enterNode(node, visitors, currentPath);
+                traverse([node.left], visitors, currentPath);
+                traverse([node.right], visitors, currentPath);
+                exitNode(node, visitors, currentPath);
+                break;
+            }
+            case AstNodeType.Function: {
+                enterNode(node, visitors, currentPath);
+                traverse([node.body], visitors, currentPath);
+                exitNode(node, visitors, currentPath);
+                break;
+            }
+            case AstNodeType.Variable: {
+                enterNode(node, visitors, currentPath);
                 exitNode(node, visitors, currentPath);
                 break;
             }
@@ -139,7 +164,7 @@ export function transform(ast: BiMoAst): BaseType[] {
 
     // register structures
     const structs = new Stack<CustomType>();
-    const fields = new Stack<Field>();
+    const fields = new Stack<Field | ComputedField>();
     const types = new Stack<BaseType>();
 
     function pickBaseType(node: SimpleFieldTypeAstNode | ParamFieldTypeAstNode): BaseType {
@@ -191,6 +216,23 @@ export function transform(ast: BiMoAst): BaseType[] {
             },
             exit() {
                 fields.pop();
+            }
+        },
+        [AstNodeType.ComputedField]: {
+            enter(node) {
+                const existingFields = structs.head().props;
+                if (existingFields.findIndex(f => f.name === node.name) !== -1) {
+                    throw new CompileError(`Field ${node.name} was already declared`, node.pos);
+                }
+                fields.push({
+                    name: node.name,
+                    access: 'public',
+                    // @ts-ignore
+                    type: {},
+                    computed: true,
+                    expression: {},
+                });
+                existingFields.push(fields.head());
             }
         },
         simpletype: {
@@ -253,10 +295,10 @@ export function transform(ast: BiMoAst): BaseType[] {
                 }
             }
         },
-        number: {
+        Number: {
             enter(node) {
                 const type = types.head();
-                if (isBuiltInType(type)) {
+                if (type && isBuiltInType(type)) {
                     type.typeArgs.length = node.value;
                 }
             }
