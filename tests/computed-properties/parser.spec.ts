@@ -1,6 +1,7 @@
 import { parse } from '../../compiler/parser/document';
 import * as Ast from '../../compiler/parser/ast';
 import { transform as transformIR } from '../../compiler/transformer/ir-transformer';
+import { transform as transformTarget } from '../../compiler/transformer/target-transformer';
 import { ComputedField, CustomType } from '../../compiler/transformer/ir-ast';
 
 describe('Parser', function () {
@@ -46,6 +47,19 @@ describe('Parser', function () {
                     body: {type: 'Var', value: 'body'}
                 }
             });
+        });
+    });
+
+    describe('target transformer', () => {
+        const res = parse(`
+        default struct Test {
+            length: i32 = 3+lengthof(body);
+        }
+        `);
+        const source = transformTarget(transformIR(res));
+
+        it('should create target AST', () => {
+            console.log(source);
         });
     });
 });

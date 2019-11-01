@@ -241,13 +241,17 @@ export function transform(ast: BiMoAst): BaseType[] {
         [AstNodeType.BinaryOperator]: {
             enter(node) {
                 const f = fields.head() as ComputedField;
-                f.expression = node;
+                if (Object.keys(f.expression).length === 0) {
+                    f.expression = node;
+                }
             }
         },
         [AstNodeType.Variable]: {
             enter(node) {
                 const f = fields.head() as ComputedField;
-                f.expression = node;
+                if (Object.keys(f.expression).length === 0) {
+                    f.expression = node;
+                }
             }
         },
         simpletype: {
