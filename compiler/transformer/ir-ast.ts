@@ -21,11 +21,13 @@ export function isBuiltInArray(t: BuiltInType): boolean {
     return t.name === 'array';
 }
 
+type TypeField = Field | ComputedField;
+
 export interface CustomType {
     tag: TypeTag.Custom,
     default: boolean,
     name: string,
-    props: Field[],
+    props: TypeField[],
 }
 
 export function isCustomType(t: BaseType): t is CustomType {
@@ -45,9 +47,13 @@ export interface Field {
     name: string,
     access: 'public' | 'private',
     type: BaseType,
+    computed: false,
 }
 
-export interface ComputedField extends Field {
+export interface ComputedField {
+    name: string,
+    access: 'public' | 'private',
+    type: BaseType,
     computed: true,
     expression: Expression.ExpressionNode,
 }

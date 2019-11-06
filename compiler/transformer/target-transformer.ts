@@ -1,4 +1,13 @@
-import { BaseType, BuiltInType, CustomType, Field, isBuiltInArray, isCustomType, TypeTag } from './ir-ast';
+import {
+    BaseType,
+    BuiltInType,
+    ComputedField,
+    CustomType,
+    Field,
+    isBuiltInArray,
+    isCustomType,
+    TypeTag
+} from './ir-ast';
 import * as TargetAst from './target-ast';
 import {
     ExpressionTag,
@@ -11,8 +20,9 @@ import {
     WriteBuiltInType,
     WriteCustomType
 } from './target-ast';
+import { Expression } from '../parser/ast';
 
-function getTypeField(f: Field): TargetAst.TypeFieldDeclaration {
+function getTypeField(f: Field | ComputedField): TargetAst.TypeFieldDeclaration {
     return {
         tag: ExpressionTag.TypeFieldDeclaration,
         name: f.name,
@@ -29,7 +39,7 @@ function getTypeDeclaration(type: CustomType): TargetAst.TypeDeclaration {
     }
 }
 
-function getWriteExpr(id: string, type: BaseType): WriteArrayType | WriteBuiltInType | WriteCustomType {
+function getWriteExpr(id: string, type: BaseType, expr?: Expression.ExpressionNode): WriteArrayType | WriteBuiltInType | WriteCustomType {
     switch (type.tag) {
         case TypeTag.BuiltIn:
             if (isBuiltInArray(type)) {
@@ -44,6 +54,7 @@ function getWriteExpr(id: string, type: BaseType): WriteArrayType | WriteBuiltIn
                 tag: ExpressionTag.WriteBuiltInType,
                 id,
                 type,
+                expression: expr,
                 computed: {},
             };
         case TypeTag.Custom:
@@ -56,7 +67,12 @@ function getWriteExpr(id: string, type: BaseType): WriteArrayType | WriteBuiltIn
 }
 
 function getWriteFunctionDeclaration(type: CustomType): TargetAst.FunctionDeclaration {
-    const props: Array<TargetAst.WriteCustomType | TargetAst.WriteBuiltInType | TargetAst.WriteArrayType> = type.props.map(p => getWriteExpr(p.name, p.type));
+    const props: Array<TargetAst.WriteCustomType | TargetAst.WriteBuiltInType | TargetAst.WriteArrayType> = type.props.map(p => {
+        if (p.computed) {
+            return getWriteExpr(p.name, p.type, p.expression);
+        }
+        return getWriteExpr(p.name, p.type);
+    });
 
     function isWriteBuiltInType(n: TargetAst.Node): n is TargetAst.WriteBuiltInType {
         return n.tag === ExpressionTag.WriteBuiltInType;

@@ -226,7 +226,7 @@ export function transform(ast: BiMoAst): BaseType[] {
                 }
                 fields.push({
                     name: node.name,
-                    access: 'public',
+                    access: 'private',
                     // @ts-ignore
                     type: {},
                     computed: true,
@@ -258,6 +258,7 @@ export function transform(ast: BiMoAst): BaseType[] {
             enter(node, path) {
                 switch (path[path.length - 2].type) {
                     case AstNodeType.Field:
+                    case AstNodeType.ComputedField:
                         fields.head().type = pickBaseType(node);
                         break;
                     case AstNodeType.ParametrizedType: {
@@ -276,6 +277,7 @@ export function transform(ast: BiMoAst): BaseType[] {
                 const t = pickBaseType(node);
                 switch (path[path.length - 2].type) {
                     case AstNodeType.Field:
+                    case AstNodeType.ComputedField:
                         fields.head().type = t;
                         break;
                     case AstNodeType.ParametrizedType: {
