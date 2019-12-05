@@ -88,7 +88,7 @@ export type AstNode = StructureAstNode
 export namespace Expression {
     export interface Variable {
         type: AstNodeType.Variable,
-        name: string
+        value: string
     }
 
     export interface Number {
