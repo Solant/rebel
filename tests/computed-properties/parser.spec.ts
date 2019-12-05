@@ -15,7 +15,15 @@ describe('Parser', function () {
         expect((result.structures[0].fields[0] as Ast.ComputedFieldAstNode).expr).toEqual({
             type: 'BinaryOperator',
             op: '+',
-            left: {type: 'Number', value: 3},
+            left: {
+                pos: {
+                    column: 27,
+                    line: 3,
+                    offset: 57,
+                },
+                type: 'Number',
+                value: 3,
+            },
             right: {
                 type: 'Function',
                 name: 'lengthof',
@@ -40,7 +48,15 @@ describe('Parser', function () {
             expect(((types[0] as CustomType).props[0] as ComputedField).expression).toEqual({
                 type: 'BinaryOperator',
                 op: '+',
-                left: {type: 'Number', value: 3},
+                left: {
+                    type: 'Number',
+                    value: 3,
+                    'pos': {
+                        'column': 27,
+                        'line': 3,
+                        'offset': 57,
+                    },
+                },
                 right: {
                     type: 'Function',
                     name: 'lengthof',

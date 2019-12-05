@@ -121,7 +121,7 @@ multiplicative
   / primary
 
 primary
-  = number / fun / var
+  = NumberLiteral / fun / var
   / "(" additive:additive ")" { return additive; }
 
 fun = name:[a-zA-Z]+ '(' body:var ')' {
@@ -134,10 +134,6 @@ fun = name:[a-zA-Z]+ '(' body:var ')' {
 
 var = [a-zA-Z0-9]+ {
     return { type: 'Var', value: text() }
-}
-
-number = digits:[0-9]+ {
-    return { type: 'Number', value: parseInt(digits.join(""), 10) };
 }
 
 _ "whitespace" = [ \t\n\r]*
