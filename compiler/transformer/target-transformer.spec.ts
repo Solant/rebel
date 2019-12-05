@@ -8,6 +8,7 @@ describe('Target transformer', () => {
             name: 'TestType',
             default: true,
             props: [{
+                computed: false,
                 name: 'property1',
                 access: 'public',
                 type: {
