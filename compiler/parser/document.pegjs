@@ -66,12 +66,13 @@ TypeArg = _ arg:PossibleTypeArgs ','? _ {
 	return arg;
 }
 
-ParametrizedType = typeName:TypeName '<' args:TypeArg+ '>' {
+ParametrizedType = typeName:TypeName '<' typeArgs:TypeArg+ '>' '('? args:ExpressionBody? ')'? {
 	return {
 	    type: 'parametrizedtype',
 	    pos: location().start,
 	    typeName: typeName.join(''),
-	    typeArgs: args
+	    typeArgs,
+	    args: [args],
     }
 }
 
@@ -94,6 +95,14 @@ ComputedFieldDeclaration = _ variable:VarName _ ':' _ fieldType:Type _ '=' _ exp
         fieldType: fieldType,
         expr: expr,
     }
+}
+
+ExpressionLiteral = _ '${' _ expr:ExpressionBody _ '}' {
+    return {
+        type: 'ExpressionLiteral',
+        pos: location().start,
+        expression: expr,
+    };
 }
 
 ExpressionBody = additive
