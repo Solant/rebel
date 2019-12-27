@@ -1,6 +1,5 @@
 import { TypeName } from '../builtInTypes';
 import { Expression } from '../parser/ast';
-import ExpressionNode = Expression.ExpressionNode;
 
 export enum TypeTag {
     BuiltIn,
@@ -11,6 +10,7 @@ export interface BuiltInType {
     tag: TypeTag.BuiltIn,
     name: TypeName,
     typeArgs: TypeArgument,
+    args: Expression.ExpressionNode[],
 }
 
 export function isBuiltInType(t: BaseType): t is BuiltInType {

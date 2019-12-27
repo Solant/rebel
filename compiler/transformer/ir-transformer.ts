@@ -1,4 +1,13 @@
-import { BaseType, ComputedField, CustomType, Field, isBuiltInArray, isBuiltInType, TypeTag } from './ir-ast';
+import {
+    BaseType,
+    BuiltInType,
+    ComputedField,
+    CustomType,
+    Field,
+    isBuiltInArray,
+    isBuiltInType,
+    TypeTag
+} from './ir-ast';
 import {
     AstNode,
     AstNodeType,
@@ -33,6 +42,16 @@ function exitNode<T extends AstNode>(node: T, visitors: AstNodeVisitor[], path: 
         if (callback && callback.exit) {
             callback.exit(node, path);
         }
+    }
+}
+
+
+function pathFinder<T extends B, B extends { type: any }>(path: B[], type: any): T | undefined {
+    const item = path.find(item => item.type === type);
+    if (item) {
+        return item as T;
+    } else {
+        return undefined;
     }
 }
 
@@ -174,6 +193,7 @@ export function transform(ast: BiMoAst): BaseType[] {
                 tag: TypeTag.BuiltIn,
                 name: name,
                 typeArgs: [],
+                args: [],
             };
         } else if (output.find(t => t.name === name)) {
             return output.find(t => t.name === name)!;
@@ -298,7 +318,8 @@ export function transform(ast: BiMoAst): BaseType[] {
                     if (typeArgs.type === undefined) {
                         throw new CompileError(`Arrays expect child type argument`, node.pos);
                     }
-                    if (!typeArgs.length && typeArgs.lengthOf === undefined) {
+                    // TODO: remove size and lengthOf
+                    if (!typeArgs.length && typeArgs.lengthOf === undefined && t.args.length === 0) {
                         throw new CompileError(`Arrays expect size type argument`, node.pos);
                     }
                 }
@@ -317,10 +338,15 @@ export function transform(ast: BiMoAst): BaseType[] {
             }
         },
         Number: {
-            enter(node) {
+            enter(node, path) {
                 const type = types.head();
-                if (type && isBuiltInType(type)) {
-                    type.typeArgs.length = node.value;
+
+                if(pathFinder<ParamFieldTypeAstNode, AstNode>(path, AstNodeType.ParametrizedType)) {
+                    (type as BuiltInType).args.push(node);
+                } else {
+                    if (type && isBuiltInType(type)) {
+                        type.typeArgs.length = node.value;
+                    }
                 }
             }
         },

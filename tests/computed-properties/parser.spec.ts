@@ -15,6 +15,18 @@ describe('Parser', function () {
         console.log(result);
     });
 
+    it('should transform type arg expression', () => {
+        const result: Ast.DocumentAstNode = parse(`
+        default struct Test {
+            length: array<i32>(4);
+        }
+        `);
+
+        const ir = transformIR(result);
+
+        console.log(ir);
+    });
+
     it('should parse', () => {
         const result: Ast.DocumentAstNode = parse(`
         default struct Test {
