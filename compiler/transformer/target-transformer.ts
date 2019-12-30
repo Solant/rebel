@@ -110,11 +110,11 @@ function getReadExpr(id: string, type: BaseType): ReadCustomType | ReadBuiltInTy
     switch (type.tag) {
         case TypeTag.BuiltIn:
             if (isBuiltInArray(type)) {
-                const expr = type.typeArgs.length || type.typeArgs.lengthOf;
+                const expr = type.args[0];
                 return {
                     tag: ExpressionTag.ReadArrayType,
                     id,
-                    sizeExpr: `< ${expr}`,
+                    sizeExpr: expr,
                     read: getReadExpr('temp', type.typeArgs.type!),
                     type: type,
                 }

@@ -27,4 +27,17 @@ describe('Computed properties', function () {
         // @ts-ignore
         expect((((ir[0] as CustomType).props[1] as ComputedField).type.args[0] as BinaryOperator).right.value).toBe(4);
     });
+
+    it('should create target ast', () => {
+        const result: Ast.DocumentAstNode = parse(`
+        default struct Test {
+            size: i32 = lengthof(data)*4;
+            data: array<i32>(size/4);
+        }
+        `);
+
+        const target = transformTarget(transformIR(result));
+
+        console.log(target);
+    });
 });

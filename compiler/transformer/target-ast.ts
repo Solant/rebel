@@ -107,7 +107,7 @@ export interface ReadArrayType {
     id: string,
     type: BuiltInType,
     read: ReadBuiltInType | ReadCustomType | ReadArrayType,
-    sizeExpr: string,
+    sizeExpr: ExpressionNode | undefined,
 }
 
 export interface WriteArrayType {
