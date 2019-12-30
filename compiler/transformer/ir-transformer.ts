@@ -105,6 +105,7 @@ function traverse(nodes: AstNode[], visitors: AstNodeVisitor[], path: AstNode[])
             case AstNodeType.ParametrizedType: {
                 enterNode(node, visitors, currentPath);
                 traverse(node.typeArgs, visitors, currentPath);
+                traverse(node.args, visitors, currentPath);
                 exitNode(node, visitors, currentPath);
                 break;
             }
@@ -192,7 +193,7 @@ export function transform(ast: BiMoAst): BaseType[] {
             return {
                 tag: TypeTag.BuiltIn,
                 name: name,
-                typeArgs: [],
+                typeArgs: {},
                 args: [],
             };
         } else if (output.find(t => t.name === name)) {
@@ -261,7 +262,8 @@ export function transform(ast: BiMoAst): BaseType[] {
         [AstNodeType.BinaryOperator]: {
             enter(node) {
                 const f = fields.head() as ComputedField;
-                if (Object.keys(f.expression).length === 0) {
+                // FIXME: remove f.expression null check by moving it to child visitor
+                if (f.expression && Object.keys(f.expression).length === 0) {
                     f.expression = node;
                 }
             }
@@ -269,7 +271,8 @@ export function transform(ast: BiMoAst): BaseType[] {
         [AstNodeType.Variable]: {
             enter(node) {
                 const f = fields.head() as ComputedField;
-                if (Object.keys(f.expression).length === 0) {
+                // FIXME: remove f.expression null check by moving it to child visitor
+                if (f.expression && Object.keys(f.expression).length === 0) {
                     f.expression = node;
                 }
             }
@@ -310,6 +313,34 @@ export function transform(ast: BiMoAst): BaseType[] {
                     }
                 }
                 types.push(t);
+
+                // Find type expression to parse
+                traverse(node.args, [{
+                    [AstNodeType.Number]: {
+                        enter(node) {
+                            const type = types.head();
+                            if (isBuiltInType(type) && type.args.length === 0) {
+                                type.args.push(node);
+                            }
+                        }
+                    },
+                    [AstNodeType.BinaryOperator]: {
+                        enter(node) {
+                            const type = types.head();
+                            if (isBuiltInType(type) && type.args.length === 0) {
+                                type.args.push(node);
+                            }
+                        }
+                    },
+                    [AstNodeType.Variable]: {
+                        enter(node) {
+                            const type = types.head();
+                            if (isBuiltInType(type) && type.args.length === 0) {
+                                type.args.push(node);
+                            }
+                        }
+                    },
+                }], [...path, node]);
             },
             exit(node) {
                 const t = types.head();
@@ -341,9 +372,7 @@ export function transform(ast: BiMoAst): BaseType[] {
             enter(node, path) {
                 const type = types.head();
 
-                if(pathFinder<ParamFieldTypeAstNode, AstNode>(path, AstNodeType.ParametrizedType)) {
-                    (type as BuiltInType).args.push(node);
-                } else {
+                if(!pathFinder<ParamFieldTypeAstNode, AstNode>(path, AstNodeType.ParametrizedType)) {
                     if (type && isBuiltInType(type)) {
                         type.typeArgs.length = node.value;
                     }

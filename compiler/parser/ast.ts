@@ -52,6 +52,7 @@ export interface ParamFieldTypeAstNode extends BaseAstNode {
     type: AstNodeType.ParametrizedType,
     typeName: string,
     typeArgs: Array<ParamFieldTypeAstNode | EndiannessLiteralAstNode | NumberLiteralAstNode | FieldRefAstNode>,
+    args: Expression.ExpressionNode[],
 }
 
 export interface DocumentAstNode extends BaseAstNode {
