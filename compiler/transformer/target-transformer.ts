@@ -47,6 +47,7 @@ function getWriteExpr(id: string, type: BaseType, expr?: Expression.ExpressionNo
                     tag: ExpressionTag.WriteArrayType,
                     id,
                     typeArg: type.typeArgs,
+                    expression: type.args[0],
                     write: getWriteExpr(`${id}[i]`, type.typeArgs.type!),
                 };
             }

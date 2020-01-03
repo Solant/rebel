@@ -38,6 +38,13 @@ describe('Computed properties', function () {
 
         const target = transformTarget(transformIR(result));
 
-        console.log(target);
+        // @ts-ignore
+        expect(target.functions[0].body[1].sizeExpr).toBeTruthy();
+
+        // @ts-ignore
+        expect(target.functions[1].body[0].expression).toBeTruthy();
+
+        // @ts-ignore
+        expect(target.functions[1].body[1].expression).toBeTruthy();
     });
 });

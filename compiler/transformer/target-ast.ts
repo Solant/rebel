@@ -114,6 +114,7 @@ export interface WriteArrayType {
     tag: ExpressionTag.WriteArrayType,
     id: string,
     typeArg: TypeArgument,
+    expression: ExpressionNode,
     write: WriteArrayType | WriteCustomType | WriteBuiltInType,
 }
 
