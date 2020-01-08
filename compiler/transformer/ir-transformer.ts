@@ -58,6 +58,9 @@ function pathFinder<T extends B, B extends { type: any }>(path: B[], type: any):
 function traverse(nodes: AstNode[], visitors: AstNodeVisitor[], path: AstNode[]) {
     nodes.forEach((node) => {
         const currentPath = [...path, node];
+        if (node === null) {
+            console.log('ooops');
+        }
         switch (node.type) {
             case AstNodeType.Structure: {
                 enterNode(node, visitors, currentPath);
@@ -105,7 +108,8 @@ function traverse(nodes: AstNode[], visitors: AstNodeVisitor[], path: AstNode[])
             case AstNodeType.ParametrizedType: {
                 enterNode(node, visitors, currentPath);
                 traverse(node.typeArgs, visitors, currentPath);
-                traverse(node.args, visitors, currentPath);
+                // FIXME: nested type args
+                traverse(node.args.filter(Boolean), visitors, currentPath);
                 exitNode(node, visitors, currentPath);
                 break;
             }
@@ -268,7 +272,7 @@ export function transform(ast: BiMoAst): BaseType[] {
                 }
             }
         },
-        [AstNodeType.Variable]: {
+        [AstNodeType.Function]: {
             enter(node) {
                 const f = fields.head() as ComputedField;
                 // FIXME: remove f.expression null check by moving it to child visitor
@@ -315,7 +319,20 @@ export function transform(ast: BiMoAst): BaseType[] {
                 types.push(t);
 
                 // Find type expression to parse
+                if (node.args.length && node.args[0] === null) {
+                    return;
+                }
+
+                // FIXME: nested type args
                 traverse(node.args, [{
+                    [AstNodeType.Function]: {
+                        enter(node) {
+                            const type = types.head();
+                            if (isBuiltInType(type) && type.args.length === 0) {
+                                type.args.push(node);
+                            }
+                        }
+                    },
                     [AstNodeType.Number]: {
                         enter(node) {
                             const type = types.head();

@@ -4,6 +4,8 @@ import { transform as transformIR } from '../../compiler/transformer/ir-transfor
 import { transform as transformTarget } from '../../compiler/transformer/target-transformer';
 import { ComputedField, CustomType } from '../../compiler/transformer/ir-ast';
 import { Expression } from '../../compiler/parser/ast';
+import generate from '../../compiler/generators/generator-module';
+import ts from '../../compiler/generators/ts/';
 import BinaryOperator = Expression.BinaryOperator;
 
 describe('Computed properties', function () {
@@ -46,5 +48,18 @@ describe('Computed properties', function () {
 
         // @ts-ignore
         expect(target.functions[1].body[1].expression).toBeTruthy();
+    });
+
+    it('should create TS sources', () => {
+        expect(() => {
+            const result: Ast.DocumentAstNode = parse(`
+        default struct Test {
+            size: i32 = lengthof(data)*4;
+            data: array<i32>(size/4);
+        }
+        `);
+            const targetAst = transformTarget(transformIR(result));
+            const sources = generate(targetAst, ts);
+        }).not.toThrow();
     });
 });
