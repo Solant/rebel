@@ -1,9 +1,10 @@
 import * as TargetAst from '../../transformer/target-ast';
+import { ExpressionTag } from '../../transformer/target-ast';
 import { BaseType, isBuiltInArray, TypeTag } from '../../transformer/ir-ast';
 import { TypeName } from '../../builtInTypes';
-import { ExpressionTag } from '../../transformer/target-ast';
 import { injectedCode } from './runtime';
 import { capitalize, GeneratorModule } from '../generator-module';
+import { AstNodeType, Expression } from '../../parser/ast';
 
 function typeTransformer(type: BaseType): string {
     type TypeMap = { [key in TypeName]: string };
@@ -106,6 +107,29 @@ export const ts: GeneratorModule = {
             enter(node, path, scope) {
                 if (node.computed.lengthOf) {
                     scope.result += `${'\t'.repeat(scope.level)}stream.write${capitalize(node.type.name)}(struct.${node.computed.lengthOf}.length);\n`;
+                } else if (node.expression) {
+                    const exprToString = (node: Expression.ExpressionNode): string => {
+                        switch(node.type) {
+                            case AstNodeType.Number:
+                                return node.value.toString();
+                            case AstNodeType.BinaryOperator:
+                                return exprToString(node.left) + node.op + exprToString(node.right);
+                            case AstNodeType.Variable:
+                                return `struct.${node.value}`;
+                            case AstNodeType.Function: {
+                                const body = exprToString(node.body);
+                                if (node.name === 'lengthof') {
+                                    return `${body}.length`;
+                                }
+                            }
+                            default:
+                                return '';
+                        }
+                    };
+
+                    scope.result += `${'\t'.repeat(scope.level)}const ${node.id} = ${exprToString(node.expression)};\n`;
+                    scope.result += `${'\t'.repeat(scope.level)}stream.write${capitalize(node.type.name)}(${node.id});\n`;
+
                 } else {
                     scope.result += `${'\t'.repeat(scope.level)}stream.write${capitalize(node.type.name)}(struct.${node.id});\n`;
                 }
@@ -124,7 +148,31 @@ export const ts: GeneratorModule = {
         ReadArrayType: {
             enter(node, path, scope) {
                 scope.result += `${'\t'.repeat(scope.level)}const ${node.id}: ${typeTransformer(node.type)} = [];\n`;
-                scope.result += `${'\t'.repeat(scope.level)}for (let i = 0; i ${node.sizeExpr}; i++) {\n`;
+
+                let sizeExpr = '';
+                if (node.sizeExpr) {
+                    const exprToString = (node: Expression.ExpressionNode): string => {
+                        switch(node.type) {
+                            case AstNodeType.Number:
+                                return node.value.toString();
+                            case AstNodeType.BinaryOperator:
+                                return exprToString(node.left) + node.op + exprToString(node.right);
+                            case AstNodeType.Variable:
+                                return `${node.value}`;
+                            case AstNodeType.Function: {
+                                const body = exprToString(node.body);
+                                if (node.name === 'lengthof') {
+                                    return `${body}.length`;
+                                }
+                            }
+                            default:
+                                return '';
+                        }
+                    };
+                    sizeExpr = exprToString(node.sizeExpr);
+                }
+
+                scope.result += `${'\t'.repeat(scope.level)}for (let i = 0; i < ${sizeExpr}; i++) {\n`;
                 scope.level += 1;
             },
             exit(node, path, scope) {
@@ -140,6 +188,28 @@ export const ts: GeneratorModule = {
                     expr = `${node.typeArg.length}`;
                 } else if (node.typeArg.lengthOf) {
                     expr = `struct.${node.id}.length`;
+                }
+
+                if (node.expression) {
+                    const exprToString = (node: Expression.ExpressionNode): string => {
+                        switch(node.type) {
+                            case AstNodeType.Number:
+                                return node.value.toString();
+                            case AstNodeType.BinaryOperator:
+                                return exprToString(node.left) + node.op + exprToString(node.right);
+                            case AstNodeType.Variable:
+                                return `${node.value}`;
+                            case AstNodeType.Function: {
+                                const body = exprToString(node.body);
+                                if (node.name === 'lengthof') {
+                                    return `${body}.length`;
+                                }
+                            }
+                            default:
+                                return '';
+                        }
+                    };
+                    expr = exprToString(node.expression);
                 }
 
                 scope.result += `${'\t'.repeat(scope.level)}for (let i = 0; i < ${expr}; i++) {\n`;

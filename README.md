@@ -62,8 +62,21 @@ readMainStruct(...) {
 Some binary data might require dynamic arrays support, for this case type `array` is available:
 ```
 default struct ArrayStruct {
-    length: i32;
-    data: array<i32, #length>;
+    length: i32 = lengthof(data);
+    data: array<i32>(length);
 }
 ```
-Where first type argument is array item type `i32`, and second is field reference starting with hash `#length`. It will generate array of 32-bit integers with a length of previosly read field `length`. Field `length` will be marked as private and won't be available for direct read or write on generated classes, instead BiMo will use temporary varialbe during read operations and actual array length during writes.
+
+`length: i32 = lengthof(data)` is computed property. It allows description of dynamic data that has dependencies on different fields.
+This field won't be available for direct read/write operations, but will be properly handled during serialization/deserialization.
+
+With `array<i32>(length)` you can define array with dynamic size of field `length`. Field will be read during deserialization, and written during serialization stage automatically.
+
+This can also be used if binary data store size instead of length, for example:
+```
+default struct ArrayWithSizeStruct {
+    size: i32 = lengthof(data)*4;
+    data: array<i32>(size/4);
+}
+```
+In this way `size` field will store size (in bytes) of 32-bit integer array `data` while preserving correct binary contents for serialization process. 

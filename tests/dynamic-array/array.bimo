@@ -1,4 +1,4 @@
 default struct ArrayStruct {
-    size: i32;
-    data: array<i32<le>, #size>;
+    size: i32 = lengthof(data);
+    data: array<i32<le>>(size);
 }

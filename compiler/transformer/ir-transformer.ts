@@ -1,4 +1,13 @@
-import { BaseType, CustomType, Field, isBuiltInArray, isBuiltInType, TypeTag } from './ir-ast';
+import {
+    BaseType,
+    BuiltInType,
+    ComputedField,
+    CustomType,
+    Field,
+    isBuiltInArray,
+    isBuiltInType,
+    TypeTag
+} from './ir-ast';
 import {
     AstNode,
     AstNodeType,
@@ -7,8 +16,8 @@ import {
     ParamFieldTypeAstNode,
     SimpleFieldTypeAstNode
 } from '../parser/ast';
-import {isTypeName} from "../builtInTypes";
-import {assertNever, CompileError} from '../assertions';
+import { isTypeName } from '../builtInTypes';
+import { assertNever, CompileError } from '../assertions';
 
 type DiscriminateUnion<T, K extends keyof T, V extends T[K]> = T extends Record<K, V> ? T : never;
 
@@ -36,13 +45,51 @@ function exitNode<T extends AstNode>(node: T, visitors: AstNodeVisitor[], path: 
     }
 }
 
+
+function pathFinder<T extends B, B extends { type: any }>(path: B[], type: any): T | undefined {
+    const item = path.find(item => item.type === type);
+    if (item) {
+        return item as T;
+    } else {
+        return undefined;
+    }
+}
+
 function traverse(nodes: AstNode[], visitors: AstNodeVisitor[], path: AstNode[]) {
     nodes.forEach((node) => {
         const currentPath = [...path, node];
+        if (node === null) {
+            console.log('ooops');
+        }
         switch (node.type) {
             case AstNodeType.Structure: {
                 enterNode(node, visitors, currentPath);
                 traverse(node.fields, visitors, currentPath);
+                exitNode(node, visitors, currentPath);
+                break;
+            }
+            case AstNodeType.ComputedField: {
+                enterNode(node, visitors, currentPath);
+                traverse([node.fieldType], visitors, currentPath);
+                traverse([node.expr], visitors, currentPath);
+                exitNode(node, visitors, currentPath);
+                break;
+            }
+            case AstNodeType.BinaryOperator: {
+                enterNode(node, visitors, currentPath);
+                traverse([node.left], visitors, currentPath);
+                traverse([node.right], visitors, currentPath);
+                exitNode(node, visitors, currentPath);
+                break;
+            }
+            case AstNodeType.Function: {
+                enterNode(node, visitors, currentPath);
+                traverse([node.body], visitors, currentPath);
+                exitNode(node, visitors, currentPath);
+                break;
+            }
+            case AstNodeType.Variable: {
+                enterNode(node, visitors, currentPath);
                 exitNode(node, visitors, currentPath);
                 break;
             }
@@ -61,6 +108,8 @@ function traverse(nodes: AstNode[], visitors: AstNodeVisitor[], path: AstNode[])
             case AstNodeType.ParametrizedType: {
                 enterNode(node, visitors, currentPath);
                 traverse(node.typeArgs, visitors, currentPath);
+                // FIXME: nested type args
+                traverse(node.args.filter(Boolean), visitors, currentPath);
                 exitNode(node, visitors, currentPath);
                 break;
             }
@@ -139,7 +188,7 @@ export function transform(ast: BiMoAst): BaseType[] {
 
     // register structures
     const structs = new Stack<CustomType>();
-    const fields = new Stack<Field>();
+    const fields = new Stack<Field | ComputedField>();
     const types = new Stack<BaseType>();
 
     function pickBaseType(node: SimpleFieldTypeAstNode | ParamFieldTypeAstNode): BaseType {
@@ -148,7 +197,8 @@ export function transform(ast: BiMoAst): BaseType[] {
             return {
                 tag: TypeTag.BuiltIn,
                 name: name,
-                typeArgs: [],
+                typeArgs: {},
+                args: [],
             };
         } else if (output.find(t => t.name === name)) {
             return output.find(t => t.name === name)!;
@@ -193,10 +243,49 @@ export function transform(ast: BiMoAst): BaseType[] {
                 fields.pop();
             }
         },
+        [AstNodeType.ComputedField]: {
+            enter(node) {
+                const existingFields = structs.head().props;
+                if (existingFields.findIndex(f => f.name === node.name) !== -1) {
+                    throw new CompileError(`Field ${node.name} was already declared`, node.pos);
+                }
+                fields.push({
+                    name: node.name,
+                    access: 'private',
+                    // @ts-ignore
+                    type: {},
+                    computed: true,
+                    expression: {},
+                });
+                existingFields.push(fields.head());
+            },
+            exit(node) {
+                fields.pop();
+            },
+        },
+        [AstNodeType.BinaryOperator]: {
+            enter(node) {
+                const f = fields.head() as ComputedField;
+                // FIXME: remove f.expression null check by moving it to child visitor
+                if (f.expression && Object.keys(f.expression).length === 0) {
+                    f.expression = node;
+                }
+            }
+        },
+        [AstNodeType.Function]: {
+            enter(node) {
+                const f = fields.head() as ComputedField;
+                // FIXME: remove f.expression null check by moving it to child visitor
+                if (f.expression && Object.keys(f.expression).length === 0) {
+                    f.expression = node;
+                }
+            }
+        },
         simpletype: {
             enter(node, path) {
                 switch (path[path.length - 2].type) {
                     case AstNodeType.Field:
+                    case AstNodeType.ComputedField:
                         fields.head().type = pickBaseType(node);
                         break;
                     case AstNodeType.ParametrizedType: {
@@ -215,6 +304,7 @@ export function transform(ast: BiMoAst): BaseType[] {
                 const t = pickBaseType(node);
                 switch (path[path.length - 2].type) {
                     case AstNodeType.Field:
+                    case AstNodeType.ComputedField:
                         fields.head().type = t;
                         break;
                     case AstNodeType.ParametrizedType: {
@@ -227,6 +317,47 @@ export function transform(ast: BiMoAst): BaseType[] {
                     }
                 }
                 types.push(t);
+
+                // Find type expression to parse
+                if (node.args.length && node.args[0] === null) {
+                    return;
+                }
+
+                // FIXME: nested type args
+                traverse(node.args, [{
+                    [AstNodeType.Function]: {
+                        enter(node) {
+                            const type = types.head();
+                            if (isBuiltInType(type) && type.args.length === 0) {
+                                type.args.push(node);
+                            }
+                        }
+                    },
+                    [AstNodeType.Number]: {
+                        enter(node) {
+                            const type = types.head();
+                            if (isBuiltInType(type) && type.args.length === 0) {
+                                type.args.push(node);
+                            }
+                        }
+                    },
+                    [AstNodeType.BinaryOperator]: {
+                        enter(node) {
+                            const type = types.head();
+                            if (isBuiltInType(type) && type.args.length === 0) {
+                                type.args.push(node);
+                            }
+                        }
+                    },
+                    [AstNodeType.Variable]: {
+                        enter(node) {
+                            const type = types.head();
+                            if (isBuiltInType(type) && type.args.length === 0) {
+                                type.args.push(node);
+                            }
+                        }
+                    },
+                }], [...path, node]);
             },
             exit(node) {
                 const t = types.head();
@@ -235,7 +366,8 @@ export function transform(ast: BiMoAst): BaseType[] {
                     if (typeArgs.type === undefined) {
                         throw new CompileError(`Arrays expect child type argument`, node.pos);
                     }
-                    if (!typeArgs.length && typeArgs.lengthOf === undefined) {
+                    // TODO: remove size and lengthOf
+                    if (!typeArgs.length && typeArgs.lengthOf === undefined && t.args.length === 0) {
                         throw new CompileError(`Arrays expect size type argument`, node.pos);
                     }
                 }
@@ -253,11 +385,14 @@ export function transform(ast: BiMoAst): BaseType[] {
                 }
             }
         },
-        number: {
-            enter(node) {
+        Number: {
+            enter(node, path) {
                 const type = types.head();
-                if (isBuiltInType(type)) {
-                    type.typeArgs.length = node.value;
+
+                if(!pathFinder<ParamFieldTypeAstNode, AstNode>(path, AstNodeType.ParametrizedType)) {
+                    if (type && isBuiltInType(type)) {
+                        type.typeArgs.length = node.value;
+                    }
                 }
             }
         },

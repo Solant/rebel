@@ -1,12 +1,16 @@
 export enum AstNodeType {
+    ComputedField = 'computedfield',
     Structure = 'structure',
     Field = 'field',
     Document = 'document',
     SimpleType = 'simpletype',
     ParametrizedType = 'parametrizedtype',
-    Number = 'number',
     Endianness = 'endianness',
-    FieldRef = 'fieldref'
+    FieldRef = 'fieldref',
+    BinaryOperator = 'BinaryOperator',
+    Variable = 'Var',
+    Number = 'Number',
+    Function = 'Function',
 }
 
 export interface NodePosition {
@@ -23,13 +27,20 @@ export interface StructureAstNode extends BaseAstNode {
     type: AstNodeType.Structure,
     default: boolean,
     name: string,
-    fields: FieldAstNode[],
+    fields: Array<FieldAstNode | ComputedFieldAstNode>,
 }
 
 export interface FieldAstNode extends BaseAstNode {
     type: AstNodeType.Field,
     name: string,
     fieldType: SimpleFieldTypeAstNode | ParamFieldTypeAstNode,
+}
+
+export interface ComputedFieldAstNode extends BaseAstNode {
+    type: AstNodeType.ComputedField,
+    name: string,
+    fieldType: SimpleFieldTypeAstNode | ParamFieldTypeAstNode,
+    expr: Expression.ExpressionNode,
 }
 
 export interface SimpleFieldTypeAstNode extends BaseAstNode {
@@ -41,6 +52,7 @@ export interface ParamFieldTypeAstNode extends BaseAstNode {
     type: AstNodeType.ParametrizedType,
     typeName: string,
     typeArgs: Array<ParamFieldTypeAstNode | EndiannessLiteralAstNode | NumberLiteralAstNode | FieldRefAstNode>,
+    args: Expression.ExpressionNode[],
 }
 
 export interface DocumentAstNode extends BaseAstNode {
@@ -65,11 +77,43 @@ export interface FieldRefAstNode extends BaseAstNode {
 
 export type AstNode = StructureAstNode
     | FieldAstNode
+    | ComputedFieldAstNode
     | DocumentAstNode
     | SimpleFieldTypeAstNode
     | ParamFieldTypeAstNode
     | NumberLiteralAstNode
     | EndiannessLiteralAstNode
-    | FieldRefAstNode;
+    | FieldRefAstNode
+    | Expression.ExpressionNode;
+
+export namespace Expression {
+    export interface Variable {
+        type: AstNodeType.Variable,
+        value: string
+    }
+
+    export interface Number {
+        type: AstNodeType.Number,
+        value: number,
+    }
+
+    export interface Function {
+        type: AstNodeType.Function,
+        name: string,
+        body: Variable,
+    }
+
+    export interface BinaryOperator {
+        type: AstNodeType.BinaryOperator,
+        op: '+' | '-' | '*' | '/',
+        left: ExpressionNode,
+        right: ExpressionNode,
+    }
+
+    export type ExpressionNode = Variable
+        | Number
+        | Function
+        | BinaryOperator;
+}
 
 export type BiMoAst = DocumentAstNode;

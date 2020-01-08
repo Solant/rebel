@@ -1,4 +1,6 @@
 import { BaseType, BuiltInType, CustomType, TypeArgument } from './ir-ast';
+import { Expression } from '../parser/ast';
+import ExpressionNode = Expression.ExpressionNode;
 
 export enum ExpressionTag {
     MainWriteFunctionDeclaration = 'MainWriteFunctionDeclaration',
@@ -71,6 +73,7 @@ export interface WriteBuiltInType {
     tag: ExpressionTag.WriteBuiltInType,
     id: string,
     type: BuiltInType,
+    expression?: ExpressionNode
     computed: {
         lengthOf?: string,
     },
@@ -104,13 +107,14 @@ export interface ReadArrayType {
     id: string,
     type: BuiltInType,
     read: ReadBuiltInType | ReadCustomType | ReadArrayType,
-    sizeExpr: string,
+    sizeExpr: ExpressionNode | undefined,
 }
 
 export interface WriteArrayType {
     tag: ExpressionTag.WriteArrayType,
     id: string,
     typeArg: TypeArgument,
+    expression: ExpressionNode,
     write: WriteArrayType | WriteCustomType | WriteBuiltInType,
 }
 
