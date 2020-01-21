@@ -1,12 +1,8 @@
-import * as TargetAst from '../../transformer/target-ast';
-import { ExpressionTag } from '../../transformer/target-ast';
-import { BaseType, isBuiltInArray, TypeTag } from '../../transformer/ir-ast';
-import { TypeName } from '../../builtInTypes';
+import { targetAst, irAst, generatorModule, parserAst } from '@bimo/core';
+import { TypeName } from '@bimo/core/builtInTypes';
 import { injectedCode } from './runtime';
-import { capitalize, GeneratorModule } from '../generator-module';
-import { AstNodeType, Expression } from '../../parser/ast';
 
-function typeTransformer(type: BaseType): string {
+function typeTransformer(type: irAst.BaseType): string {
     type TypeMap = { [key in TypeName]: string };
     const types: TypeMap = {
         i8: 'number',
@@ -21,17 +17,17 @@ function typeTransformer(type: BaseType): string {
     };
 
     switch (type.tag) {
-        case TypeTag.BuiltIn:
-            if (isBuiltInArray(type)) {
+        case irAst.TypeTag.BuiltIn:
+            if (irAst.isBuiltInArray(type)) {
                 return `${typeTransformer(type.typeArgs.type!)}[]`;
             }
             return types[type.name];
-        case TypeTag.Custom:
+        case irAst.TypeTag.Custom:
             return type.name;
     }
 }
 
-export const ts: GeneratorModule = {
+export const ts: generatorModule.GeneratorModule = {
     fileExtension: 'ts',
     language: 'TypeScript',
     visitor: [{
@@ -72,7 +68,7 @@ export const ts: GeneratorModule = {
                 scope.result += '(';
             },
             exit(node, path, scope) {
-                const {type} = path.find(t => t.tag === ExpressionTag.FunctionDeclaration)! as TargetAst.FunctionDeclaration;
+                const {type} = path.find(t => t.tag === targetAst.ExpressionTag.FunctionDeclaration)! as targetAst.FunctionDeclaration;
                 scope.result += `): ${type} {\n`;
             },
         },
@@ -90,7 +86,7 @@ export const ts: GeneratorModule = {
         },
         ReadBuiltInType: {
             enter(node, path, scope) {
-                scope.result += `${'\t'.repeat(scope.level)}const ${node.id}: ${typeTransformer(node.type)} = stream.read${capitalize(node.type.name)}();\n`;
+                scope.result += `${'\t'.repeat(scope.level)}const ${node.id}: ${typeTransformer(node.type)} = stream.read${generatorModule.capitalize(node.type.name)}();\n`;
             },
         },
         ReadCustomType: {
@@ -106,17 +102,17 @@ export const ts: GeneratorModule = {
         WriteBuiltInType: {
             enter(node, path, scope) {
                 if (node.computed.lengthOf) {
-                    scope.result += `${'\t'.repeat(scope.level)}stream.write${capitalize(node.type.name)}(struct.${node.computed.lengthOf}.length);\n`;
+                    scope.result += `${'\t'.repeat(scope.level)}stream.write${generatorModule.capitalize(node.type.name)}(struct.${node.computed.lengthOf}.length);\n`;
                 } else if (node.expression) {
-                    const exprToString = (node: Expression.ExpressionNode): string => {
+                    const exprToString = (node: parserAst.Expression.ExpressionNode): string => {
                         switch(node.type) {
-                            case AstNodeType.Number:
+                            case parserAst.AstNodeType.Number:
                                 return node.value.toString();
-                            case AstNodeType.BinaryOperator:
+                            case parserAst.AstNodeType.BinaryOperator:
                                 return exprToString(node.left) + node.op + exprToString(node.right);
-                            case AstNodeType.Variable:
+                            case parserAst.AstNodeType.Variable:
                                 return `struct.${node.value}`;
-                            case AstNodeType.Function: {
+                            case parserAst.AstNodeType.Function: {
                                 const body = exprToString(node.body);
                                 if (node.name === 'lengthof') {
                                     return `${body}.length`;
@@ -128,10 +124,10 @@ export const ts: GeneratorModule = {
                     };
 
                     scope.result += `${'\t'.repeat(scope.level)}const ${node.id} = ${exprToString(node.expression)};\n`;
-                    scope.result += `${'\t'.repeat(scope.level)}stream.write${capitalize(node.type.name)}(${node.id});\n`;
+                    scope.result += `${'\t'.repeat(scope.level)}stream.write${generatorModule.capitalize(node.type.name)}(${node.id});\n`;
 
                 } else {
-                    scope.result += `${'\t'.repeat(scope.level)}stream.write${capitalize(node.type.name)}(struct.${node.id});\n`;
+                    scope.result += `${'\t'.repeat(scope.level)}stream.write${generatorModule.capitalize(node.type.name)}(struct.${node.id});\n`;
                 }
             },
         },
@@ -151,15 +147,15 @@ export const ts: GeneratorModule = {
 
                 let sizeExpr = '';
                 if (node.sizeExpr) {
-                    const exprToString = (node: Expression.ExpressionNode): string => {
+                    const exprToString = (node: parserAst.Expression.ExpressionNode): string => {
                         switch(node.type) {
-                            case AstNodeType.Number:
+                            case parserAst.AstNodeType.Number:
                                 return node.value.toString();
-                            case AstNodeType.BinaryOperator:
+                            case parserAst.AstNodeType.BinaryOperator:
                                 return exprToString(node.left) + node.op + exprToString(node.right);
-                            case AstNodeType.Variable:
+                            case parserAst.AstNodeType.Variable:
                                 return `${node.value}`;
-                            case AstNodeType.Function: {
+                            case parserAst.AstNodeType.Function: {
                                 const body = exprToString(node.body);
                                 if (node.name === 'lengthof') {
                                     return `${body}.length`;
@@ -191,15 +187,15 @@ export const ts: GeneratorModule = {
                 }
 
                 if (node.expression) {
-                    const exprToString = (node: Expression.ExpressionNode): string => {
+                    const exprToString = (node: parserAst.Expression.ExpressionNode): string => {
                         switch(node.type) {
-                            case AstNodeType.Number:
+                            case parserAst.AstNodeType.Number:
                                 return node.value.toString();
-                            case AstNodeType.BinaryOperator:
+                            case parserAst.AstNodeType.BinaryOperator:
                                 return exprToString(node.left) + node.op + exprToString(node.right);
-                            case AstNodeType.Variable:
+                            case parserAst.AstNodeType.Variable:
                                 return `${node.value}`;
-                            case AstNodeType.Function: {
+                            case parserAst.AstNodeType.Function: {
                                 const body = exprToString(node.body);
                                 if (node.name === 'lengthof') {
                                     return `${body}.length`;

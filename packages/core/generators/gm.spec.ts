@@ -1,3 +1,5 @@
+/*
+
 import { transform } from '../index';
 import { parse } from '../parser/document'
 import { transform as transformTarget } from '../transformer/target-transformer';
@@ -20,3 +22,5 @@ describe('a1', function () {
         generate(transform(ast), ts);
     });
 });
+
+*/

@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync } from 'fs';
-import { compile } from './compiler';
+import { compile } from '@bimo/core';
 import { options } from 'yargs';
 import { basename, extname } from 'path';
 
@@ -29,6 +29,14 @@ const args = options({
 const file = args._[0];
 const fileContent = readFileSync(file, { encoding: 'UTF-8'});
 
-const output = compile(fileContent, args);
+try {
+    require.resolve(`@bimo/target-${args.target}`)
+} catch (e) {
+    console.error(e);
+    process.exit(1);
+}
+const targetModule = require(`@bimo/target-${args.target}`);
+
+const output = compile(fileContent, targetModule, args);
 const outputFile = args.output ? args.output : (basename(file, extname(file)) + `.${output.fileExtension}`);
 writeFileSync(outputFile, output.fileContent);

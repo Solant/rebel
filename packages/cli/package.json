@@ -1,0 +1,34 @@
+{
+  "name": "@bimo/cli",
+  "version": "0.2.0",
+  "description": "Binary format declaration language and a compiler",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "bin": {
+    "bimo": "lib/index.js"
+  },
+  "files": [
+    "lib/",
+    "LICENSE.md"
+  ],
+  "keywords": [],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/Solant/bimo"
+  },
+  "homepage": "https://github.com/Solant/bimo",
+  "bugs": "https://github.com/Solant/bimo/issues",
+  "dependencies": {
+    "yargs": "^14.0.0"
+  },
+  "peerDependencies": {
+    "@bimo/core": "^0.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^12.7.2",
+    "typescript": "^3.5.3"
+  }
+}

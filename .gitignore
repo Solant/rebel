@@ -4,6 +4,9 @@ coverage/
 
 compiler/parser/document.ts
 
+# packages compiled with tsc
+lib/
+
 # Nuxt
 .nuxt/
 dist-web/

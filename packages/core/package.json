@@ -1,0 +1,33 @@
+{
+  "name": "@bimo/core",
+  "version": "0.2.0",
+  "description": "Binary format declaration language and a compiler",
+  "main": "./lib/index.js",
+  "scripts": {
+    "build": "npm run generate-parser && tsc",
+    "test": "npm run generate-parser && jest",
+    "generate-parser": "pegjs --plugin ./node_modules/ts-pegjs -o parser/document.ts parser/document.pegjs"
+  },
+  "files": [
+    "lib/",
+    "LICENSE.md"
+  ],
+  "keywords": [],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/Solant/bimo"
+  },
+  "homepage": "https://github.com/Solant/bimo",
+  "bugs": "https://github.com/Solant/bimo/issues",
+  "dependencies": {
+    "mustache": "^3.0.1"
+  },
+  "devDependencies": {
+    "@types/mustache": "^0.8.32",
+    "pegjs": "^0.10.0",
+    "ts-jest": "^24.0.2",
+    "ts-pegjs": "^0.2.6",
+    "typescript": "^3.5.3"
+  }
+}

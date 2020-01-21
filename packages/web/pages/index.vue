@@ -42,8 +42,9 @@
 </template>
 
 <script lang="ts">
+    import { compile } from '@bimo/core';
     import { createComponent, reactive, ref } from '@vue/composition-api';
-    import { compile } from '../../compiler';
+    import ts from '@bimo/target-ts';
 
     export default createComponent({
         setup () {
@@ -75,7 +76,7 @@ default struct ArrayStruct {
             function runCompiler() {
                 try {
                     const t0 = performance.now();
-                    output.value = compile(input.value, { emitRuntime: emitRuntime.value, target: 'ts' }).fileContent;
+                    output.value = compile(input.value, ts, { emitRuntime: emitRuntime.value, target: 'ts' }).fileContent;
                     const t1 = performance.now();
 
                     result.time = t1 - t0;
@@ -84,6 +85,8 @@ default struct ArrayStruct {
                 } catch (e) {
                     result.message = e.message;
                     result.success = false;
+
+                    throw e;
                 }
             }
 
@@ -101,9 +104,9 @@ default struct ArrayStruct {
 
 <style>
     /* purgecss start ignore */
-    @import '../../node_modules/codemirror/lib/codemirror.css';
-    @import '../../node_modules/codemirror/addon/merge/merge.css';
-    @import '../../node_modules/codemirror/theme/base16-light.css';
+    @import '../node_modules/codemirror/lib/codemirror.css';
+    @import '../node_modules/codemirror/addon/merge/merge.css';
+    @import '../node_modules/codemirror/theme/base16-light.css';
     /* purgecss start ignore */
 
     .btn {

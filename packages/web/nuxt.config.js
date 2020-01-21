@@ -1,5 +1,4 @@
 export default {
-    srcDir: 'web/',
     buildModules: [
         '@nuxt/typescript-build',
         '@nuxtjs/tailwindcss',
@@ -15,7 +14,12 @@ export default {
         'plugins/composition',
         { src: 'plugins/codemirror', ssr: false },
     ],
+    build: {
+        babel: {
+            sourceType: 'unambiguous',
+        }
+    },
     generate: {
-        dir: 'dist-web',
+        dir: 'dist',
     }
 }

@@ -1,17 +1,14 @@
 {
-  "name": "bimo",
+  "name": "@bimo/target-ts",
   "version": "0.2.0",
   "description": "Binary format declaration language and a compiler",
   "main": "dist/index.js",
   "scripts": {
-    "build": "npm run generate-parser && tsc",
+    "build": "tsc",
     "test": "npm run generate-parser && jest",
     "generate-parser": "pegjs --plugin ./node_modules/ts-pegjs -o compiler/parser/document.ts compiler/parser/document.pegjs",
     "web:dev": "nuxt",
     "web:generate": "npm run generate-parser && nuxt generate"
-  },
-  "bin": {
-    "bimo": "dist/cli.js"
   },
   "files": [
     "dist/",
@@ -25,25 +22,11 @@
   },
   "homepage": "https://github.com/Solant/bimo",
   "bugs": "https://github.com/Solant/bimo/issues",
-  "dependencies": {
-    "mustache": "^3.0.1",
-    "yargs": "^14.0.0"
+  "peerDependencies": {
+    "@bimo/core": "^0.2.0"
   },
   "devDependencies": {
-    "@nuxt/typescript-build": "^0.1.11",
-    "@nuxtjs/tailwindcss": "^1.1.2",
-    "@types/jest": "^24.0.17",
-    "@types/mustache": "^0.8.32",
     "@types/node": "^12.7.2",
-    "@vue/composition-api": "^0.2.1",
-    "jest": "^24.9.0",
-    "lerna": "^3.20.2",
-    "nuxt": "^2.9.1",
-    "pegjs": "^0.10.0",
-    "ts-jest": "^24.0.2",
-    "ts-node": "^8.3.0",
-    "ts-pegjs": "^0.2.6",
-    "typescript": "^3.5.3",
-    "vue-codemirror": "^4.0.6"
+    "typescript": "^3.5.3"
   }
 }
