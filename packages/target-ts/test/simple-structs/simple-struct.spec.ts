@@ -1,5 +1,6 @@
-import { run } from '../utils';
-import { compile } from '../../compiler';
+import { run } from '../../../../tests/utils';
+import { compile } from '@bimo/core';
+import ts from '../../index';
 import { readFileSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
 
@@ -22,7 +23,7 @@ describe('Simple struct', function () {
             },
             bimo: {
                 prepare() {
-                    const source = compile(read('plain.bimo'), { emitRuntime: true, target: 'ts' });
+                    const source = compile(read('plain.bimo'), ts, { emitRuntime: true, target: 'ts' });
                     write('plain-compiled.ts', source.fileContent);
                 },
                 read: 'npx ts-node read.ts read',

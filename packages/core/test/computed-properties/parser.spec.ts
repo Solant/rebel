@@ -1,8 +1,8 @@
-import { parse } from '../../compiler/parser/document';
-import * as Ast from '../../compiler/parser/ast';
-import { transform as transformIR } from '../../compiler/transformer/ir-transformer';
-import { transform as transformTarget } from '../../compiler/transformer/target-transformer';
-import { ComputedField, CustomType } from '../../compiler/transformer/ir-ast';
+import { parse } from '../../parser/document';
+import * as Ast from '../../parser/ast';
+import { transform as transformIR } from '../../transformer/ir-transformer';
+import { transform as transformTarget } from '../../transformer/target-transformer';
+import { ComputedField, CustomType } from '../../transformer/ir-ast';
 
 describe('Parser', function () {
     it('should parse', () => {

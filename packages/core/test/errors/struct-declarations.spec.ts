@@ -1,8 +1,8 @@
-import { compile, CompileError } from '../../compiler';
+import { transform, parse, CompileError } from '../../';
 
 describe('Struct declarations', () => {
     it('should be exactly one default struct', () => {
-        expect(() => compile(`
+        expect(() => transform(parse(`
         default struct Test {
             num: i32;
         }
@@ -10,12 +10,12 @@ describe('Struct declarations', () => {
         default struct Test {
             num: i32;
         }
-        `, { emitRuntime: true, target: 'ts' })).toThrow(CompileError);
+        `))).toThrow(CompileError);
 
-        expect(() => compile(`
+        expect(() => transform(parse(`
         struct Test {
             num: i32;
         }
-        `, { emitRuntime: true, target: 'ts' })).toThrow(CompileError);
+        `))).toThrow(CompileError);
     });
 });

@@ -23,4 +23,6 @@ import * as parserAst from './parser/ast';
 import * as generatorModule from './generators/generator-module';
 export { targetAst, irAst, generatorModule, parserAst };
 
+export { parse };
+
 export { CompileError, CodeGenerationError } from './assertions';
