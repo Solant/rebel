@@ -20,12 +20,12 @@ jobs:
           name: Install dependencies
           command: apk add g++ nodejs npm
 
-      - run: npm ci
+      - run: npm ci && npx lerna bootstrap
 
-      - save_cache:
-          paths:
-            - node_modules
-          key: v1-dependencies-{{ checksum "package.json" }}
+#      - save_cache:
+#          paths:
+#            - node_modules
+#          key: v1-dependencies-{{ checksum "package.json" }}
 
       # run tests!
-      - run: npm run generate-parser && npm run test
+      - run: npm run build && npm run test
