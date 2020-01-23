@@ -22,7 +22,12 @@
     "@bimo/core": "^0.2.0"
   },
   "devDependencies": {
+    "@bimo/core": "^0.2.0",
+    "@types/mustache": "^4.0.0",
     "@types/node": "^12.7.2",
     "typescript": "^3.5.3"
+  },
+  "dependencies": {
+    "mustache": "^4.0.0"
   }
 }
