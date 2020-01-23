@@ -2,16 +2,12 @@
   "name": "@bimo/target-ts",
   "version": "0.2.0",
   "description": "Binary format declaration language and a compiler",
-  "main": "dist/index.js",
+  "main": "lib/index.js",
   "scripts": {
-    "build": "tsc",
-    "test": "npm run generate-parser && jest",
-    "generate-parser": "pegjs --plugin ./node_modules/ts-pegjs -o compiler/parser/document.ts compiler/parser/document.pegjs",
-    "web:dev": "nuxt",
-    "web:generate": "npm run generate-parser && nuxt generate"
+    "build": "tsc"
   },
   "files": [
-    "dist/",
+    "lib/",
     "LICENSE.md"
   ],
   "keywords": [],

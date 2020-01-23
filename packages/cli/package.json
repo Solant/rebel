@@ -2,7 +2,7 @@
   "name": "@bimo/cli",
   "version": "0.2.0",
   "description": "Binary format declaration language and a compiler",
-  "main": "dist/index.js",
+  "main": "lib/index.js",
   "scripts": {
     "build": "tsc"
   },
@@ -10,8 +10,7 @@
     "bimo": "lib/index.js"
   },
   "files": [
-    "lib/",
-    "LICENSE.md"
+    "lib/"
   ],
   "keywords": [],
   "license": "MIT",
@@ -29,6 +28,8 @@
   },
   "devDependencies": {
     "@types/node": "^12.7.2",
+    "@types/yargs": "^15.0.1",
+    "@bimo/core": "^0.2.0",
     "typescript": "^3.5.3"
   }
 }

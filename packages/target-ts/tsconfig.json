@@ -1,21 +1,10 @@
 {
+  "extends": "../../tsconfig.base",
   "compilerOptions": {
-    "outDir": "./dist",
-    "target": "es5",
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "esModuleInterop": true,
-    "allowJs": true,
-    "sourceMap": true,
-    "strict": true,
-    "declaration": true,
-    "types": [
-      "@types/node",
-      "@nuxt/types"
-    ]
+    "outDir": "lib"
   },
   "exclude": [
     "node_modules",
-    "dist"
+    "lib"
   ]
 }

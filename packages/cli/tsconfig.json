@@ -1,13 +1,7 @@
 {
+  "extends": "../../tsconfig.base",
   "compilerOptions": {
-    "outDir": "./lib",
-    "target": "es5",
-    "module": "commonjs",
-    "esModuleInterop": true,
-    "allowJs": true,
-    "sourceMap": true,
-    "strict": true,
-    "declaration": true,
+    "outDir": "lib",
     "types": [
       "@types/node"
     ]
