@@ -2,7 +2,9 @@
 node_modules/
 coverage/
 
-compiler/parser/document.ts
+packages/core/parser/document.ts
+
+lerna-debug.log
 
 # packages compiled with tsc
 lib/
