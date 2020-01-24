@@ -20,7 +20,7 @@ jobs:
           name: Install dependencies
           command: apk add g++ nodejs npm
 
-      - run: npm ci && npx lerna bootstrap && npm config set npm_config_unsafe_perm true
+      - run: npm ci && npx lerna bootstrap && npm config set unsafe-perm true
 
 #      - save_cache:
 #          paths:
