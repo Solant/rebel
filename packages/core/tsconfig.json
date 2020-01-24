@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base",
+  "compilerOptions": {
+    "outDir": "lib"
+  },
+  "exclude": [
+    "node_modules",
+    "lib",
+    "test"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base",
+  "compilerOptions": {
+    "outDir": "lib",
+    "types": [
+      "@types/node"
+    ]
+  },
+  "exclude": [
+    "node_modules",
+    "lib",
+    "test"
+  ]
+}

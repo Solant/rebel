@@ -1,0 +1,33 @@
+{
+  "name": "@bimo/web",
+  "version": "0.2.0",
+  "description": "Binary format declaration language and a compiler",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "nuxt build",
+    "start": "nuxt start",
+    "generate": "nuxt generate",
+    "dev": "nuxt"
+  },
+  "keywords": [],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/Solant/bimo"
+  },
+  "homepage": "https://github.com/Solant/bimo",
+  "bugs": "https://github.com/Solant/bimo/issues",
+  "dependencies": {
+    "@bimo/core": "^0.2.0",
+    "@bimo/target-ts": "^0.2.0",
+    "@nuxt/typescript-runtime": "^0.3.8"
+  },
+  "devDependencies": {
+    "@nuxt/typescript-build": "^0.1.11",
+    "@nuxtjs/tailwindcss": "^1.1.2",
+    "@vue/composition-api": "^0.2.1",
+    "nuxt": "^2.11.0",
+    "typescript": "^3.5.3",
+    "vue-codemirror": "^4.0.6"
+  }
+}
