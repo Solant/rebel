@@ -1,6 +1,6 @@
 {
   "name": "@rebel-struct/cli",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Binary format declaration language and a compiler",
   "main": "lib/index.js",
   "scripts": {
@@ -27,9 +27,9 @@
     "@rebel-struct/core": "^0.2.0"
   },
   "devDependencies": {
+    "@rebel-struct/core": "^0.2.1",
     "@types/node": "^12.7.2",
     "@types/yargs": "^15.0.1",
-    "@rebel-struct/core": "^0.2.0",
     "typescript": "^3.5.3"
   }
 }

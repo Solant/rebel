@@ -1,6 +1,6 @@
 {
   "name": "@rebel-struct/target-ts",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Binary format declaration language and a compiler",
   "main": "lib/index.js",
   "scripts": {
@@ -22,7 +22,7 @@
     "@rebel-struct/core": "^0.2.0"
   },
   "devDependencies": {
-    "@rebel-struct/core": "^0.2.0",
+    "@rebel-struct/core": "^0.2.1",
     "@types/mustache": "^4.0.0",
     "@types/node": "^12.7.2",
     "typescript": "^3.5.3"

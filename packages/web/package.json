@@ -1,7 +1,7 @@
 {
   "name": "@rebel-struct/web",
   "private": false,
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Binary format declaration language and a compiler",
   "main": "dist/index.js",
   "scripts": {
@@ -19,9 +19,9 @@
   "homepage": "https://github.com/Solant/bimo",
   "bugs": "https://github.com/Solant/bimo/issues",
   "dependencies": {
-    "@rebel-struct/core": "^0.2.0",
-    "@rebel-struct/target-ts": "^0.2.0",
-    "@nuxt/typescript-runtime": "^0.3.8"
+    "@nuxt/typescript-runtime": "^0.3.8",
+    "@rebel-struct/core": "^0.2.1",
+    "@rebel-struct/target-ts": "^0.2.1"
   },
   "devDependencies": {
     "@nuxt/typescript-build": "^0.1.11",
