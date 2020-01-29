@@ -1,5 +1,6 @@
 {
   "name": "@rebel-struct/cli",
+  "private": false,
   "version": "0.2.1",
   "description": "Binary format declaration language and a compiler",
   "main": "lib/index.js",
@@ -31,5 +32,6 @@
     "@types/node": "^12.7.2",
     "@types/yargs": "^15.0.1",
     "typescript": "^3.5.3"
-  }
+  },
+  "gitHead": "a07ddb0687486bd252aeef4a88094baf3293590e"
 }

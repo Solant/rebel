@@ -1,5 +1,6 @@
 {
   "name": "@rebel-struct/core",
+  "private": false,
   "version": "0.2.1",
   "description": "Binary format declaration language and a compiler",
   "main": "./lib/index.js",

@@ -1,6 +1,6 @@
 {
   "name": "@rebel-struct/web",
-  "private": false,
+  "private": true,
   "version": "0.2.1",
   "description": "Binary format declaration language and a compiler",
   "main": "dist/index.js",

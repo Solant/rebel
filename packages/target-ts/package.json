@@ -1,5 +1,6 @@
 {
   "name": "@rebel-struct/target-ts",
+  "private": false,
   "version": "0.2.1",
   "description": "Binary format declaration language and a compiler",
   "main": "lib/index.js",
@@ -29,5 +30,6 @@
   },
   "dependencies": {
     "mustache": "^4.0.0"
-  }
+  },
+  "gitHead": "a07ddb0687486bd252aeef4a88094baf3293590e"
 }
