@@ -31,5 +31,8 @@
     "ts-jest": "^24.0.2",
     "ts-pegjs": "^0.2.6",
     "typescript": "^3.5.3"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

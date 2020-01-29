@@ -33,5 +33,8 @@
     "@types/yargs": "^15.0.1",
     "typescript": "^3.5.3"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "gitHead": "a07ddb0687486bd252aeef4a88094baf3293590e"
 }

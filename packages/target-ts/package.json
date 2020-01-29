@@ -31,5 +31,8 @@
   "dependencies": {
     "mustache": "^4.0.0"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "gitHead": "a07ddb0687486bd252aeef4a88094baf3293590e"
 }
