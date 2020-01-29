@@ -1,5 +1,5 @@
-import { targetAst, irAst, generatorModule, parserAst } from '@bimo/core';
-import { TypeName } from '@bimo/core/builtInTypes';
+import { targetAst, irAst, generatorModule, parserAst } from '@rebel-struct/core';
+import { TypeName } from '@rebel-struct/core/builtInTypes';
 import { injectedCode } from './runtime';
 
 function typeTransformer(type: irAst.BaseType): string {

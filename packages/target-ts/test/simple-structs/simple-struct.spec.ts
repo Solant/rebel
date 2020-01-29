@@ -1,5 +1,5 @@
 import { run } from '../../../../tests/utils';
-import { compile } from '@bimo/core';
+import { compile } from '@rebel-struct/core';
 import ts from '../../index';
 import { readFileSync, writeFileSync } from 'fs';
 import { resolve } from 'path';

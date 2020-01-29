@@ -42,9 +42,9 @@
 </template>
 
 <script lang="ts">
-    import { compile } from '@bimo/core';
+    import { compile } from '@rebel-struct/core';
     import { createComponent, reactive, ref } from '@vue/composition-api';
-    import ts from '@bimo/target-ts';
+    import ts from '@rebel-struct/target-ts';
 
     export default createComponent({
         setup () {
