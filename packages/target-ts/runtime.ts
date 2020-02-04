@@ -1,75 +1,112 @@
-import { render } from 'mustache';
+export default `
 
-export function injectedCode() {
-    return render(
-`
-class BimoStream {
-    offset: number;
-    buffer: Buffer;
+class RebelStream {
+    pos: number = 0;
+    arrayBuffer: ArrayBuffer;
+    dataView: DataView;
 
-    constructor(buffer: Buffer) {
-        this.offset = 0;
-        this.buffer = buffer;
+    private static isNodeBuffer(b: any): b is Buffer {
+        return b.buffer !== undefined;
     }
-    
-    {{#signedNumbers}}
-    read{{name}}(le = true): number {
-        let value: number = 0;
-        if (le) {
-            value = this.buffer.readIntLE(this.offset, {{size}});
+
+    constructor(buffer: ArrayBuffer | Buffer) {
+        if (RebelStream.isNodeBuffer(buffer)) {
+            this.arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.length);
         } else {
-            value = this.buffer.readIntBE(this.offset, {{size}});
+            this.arrayBuffer = buffer;
         }
-        this.offset += {{size}};
-        return value;
+
+        this.dataView = new DataView(this.arrayBuffer);
     }
-    
-    write{{name}}(value: number, le = true) {
-        if (le) {
-            this.buffer.writeIntLE(value, this.offset, {{size}});
-        } else {
-            this.buffer.writeIntBE(value, this.offset, {{size}});
+
+    readString(length: number, encoding: string = 'ascii'): string {
+        let result = '';
+        if (encoding === 'ascii') {
+            const buf = new Uint8Array(this.arrayBuffer.slice(this.pos + length));
+            for (let i = 0; i < buf.length; i++) {
+                result += String.fromCharCode(buf[i]);
+            }
         }
-        this.offset += {{size}};
+
+        return result;
     }
-    {{/signedNumbers}}
-    
-    {{#unsignedNumbers}}
-    read{{name}}(le = true): number {
-        let value: number = 0;
-        if (le) {
-            value = this.buffer.readUIntLE(this.offset, {{size}});
-        } else {
-            value = this.buffer.readUIntBE(this.offset, {{size}});
+
+    writeString(value: string, encoding: string = 'ascii'): void {
+        this.write(value.length, () => {
+            for (let i = 0; i < value.length; i++) {
+                this.dataView.setUint8(this.pos + i, value.charCodeAt(i));
+            }
+        });
+    }
+
+    readU8(): number {
+        const result = this.dataView.getUint8(this.pos);
+        this.pos += 1;
+        return result;
+    }
+
+    readU16(endianness: string = 'le'): number {
+        const result = this.dataView.getUint16(this.pos, endianness === 'le');
+        this.pos += 2;
+        return result;
+    }
+
+    readU32(endianness: string = 'le'): number {
+        const result = this.dataView.getUint32(this.pos, endianness === 'le');
+        this.pos += 4;
+        return result;
+    }
+
+    writeU8(value: number): void {
+        this.write(1, () => this.dataView.setUint8(this.pos, value));
+    }
+
+    writeU16(value: number, endianness: string = 'le'): void {
+        this.write(2, () => this.dataView.setUint16(this.pos, value));
+    }
+
+    writeU32(value: number, endianness: string = 'le'): void {
+        this.write(4, () => this.dataView.setUint32(this.pos, value));
+    }
+
+    readI8(): number {
+        const result = this.dataView.getInt8(this.pos);
+        this.pos += 1;
+        return result;
+    }
+
+    readI16(endianness: string = 'le'): number {
+        const result = this.dataView.getInt16(this.pos, endianness === 'le');
+        this.pos += 2;
+        return result;
+    }
+
+    readI32(endianness: string = 'le'): number {
+        const result = this.dataView.getInt32(this.pos, endianness === 'le');
+        this.pos += 4;
+        return result;
+    }
+
+    writeI8(value: number): void {
+        this.write(1, () => this.dataView.setInt8(this.pos, value));
+    }
+
+    writeI16(value: number, endianness: string = 'le'): void {
+        this.write(2, () => this.dataView.setInt16(this.pos, value, endianness === 'le'));
+    }
+
+    writeI32(value: number, endianness: string = 'le'): void {
+        this.write(4, () => this.dataView.setInt32(this.pos, value, endianness === 'le'));
+    }
+
+    private write(bytes: number, cb: () => void): void {
+        if (this.pos + bytes > this.arrayBuffer.byteLength) {
+            throw new Error('Resize is not implemented');
         }
-        this.offset += {{size}};
-        return value;
+
+        cb();
+
+        this.pos += bytes;
     }
-    
-    write{{name}}(value: number, le = true) {
-        if (le) {
-            this.buffer.writeUIntLE(value, this.offset, {{size}});
-        } else {
-            this.buffer.writeUIntBE(value, this.offset, {{size}});
-        }
-        this.offset += {{size}};
-    }
-    {{/unsignedNumbers}}
 }
-`,
-        {
-            signedNumbers: [
-                { name: 'I8', size: 1 },
-                { name: 'I16', size: 2 },
-                { name: 'I32', size: 4 },
-                { name: 'I64', size: 8 },
-            ],
-            unsignedNumbers: [
-                { name: 'U8', size: 1 },
-                { name: 'U16', size: 2 },
-                { name: 'U32', size: 4 },
-                { name: 'U64', size: 8 },
-            ],
-        }
-    )
-}
+`;

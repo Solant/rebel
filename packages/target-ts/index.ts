@@ -1,6 +1,6 @@
 import { targetAst, irAst, generatorModule, parserAst } from '@rebel-struct/core';
 import { TypeName } from '@rebel-struct/core/builtInTypes';
-import { injectedCode } from './runtime';
+import injectedCode from './runtime';
 
 function typeTransformer(type: irAst.BaseType): string {
     type TypeMap = { [key in TypeName]: string };
@@ -75,7 +75,7 @@ export const ts: generatorModule.GeneratorModule = {
         FunctionParameter: {
             enter(node, path, scope) {
                 if (node.type === 'BimoStream') {
-                    scope.result += `${node.id}: ${node.type}`;
+                    scope.result += `${node.id}: RebelStream`;
                 } else {
                     scope.result += `${node.id}: ${typeTransformer(node.type)}`;
                 }
@@ -219,7 +219,7 @@ export const ts: generatorModule.GeneratorModule = {
         MainReadFunctionDeclaration: {
             enter(node, path, scope) {
                 scope.result += `export function read(buffer: Buffer): ${node.type.name} {\n`;
-                scope.result += `    const stream: BimoStream = new BimoStream(buffer);\n`;
+                scope.result += `    const stream: RebelStream = new RebelStream(buffer);\n`;
                 scope.result += `    return read${node.type.name}(stream);\n`;
                 scope.result += `}\n`;
             },
@@ -227,13 +227,13 @@ export const ts: generatorModule.GeneratorModule = {
         MainWriteFunctionDeclaration: {
             enter(node, path, scope) {
                 scope.result += `export function write(buffer: Buffer, source: ${node.type.name}): void {\n`;
-                scope.result += `    const stream: BimoStream = new BimoStream(buffer);\n`;
+                scope.result += `    const stream: RebelStream = new RebelStream(buffer);\n`;
                 scope.result += `    write${node.type.name}(source, stream);\n`;
                 scope.result += `}\n`;
             },
         },
     }],
-    injects: injectedCode,
+    injects: () => injectedCode,
 };
 
 export default ts;

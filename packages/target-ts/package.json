@@ -24,13 +24,10 @@
   },
   "devDependencies": {
     "@rebel-struct/core": "^0.2.2",
-    "@types/mustache": "^4.0.0",
     "@types/node": "^12.7.2",
     "typescript": "^3.5.3"
   },
-  "dependencies": {
-    "mustache": "^4.0.0"
-  },
+  "dependencies": {},
   "publishConfig": {
     "access": "public"
   },
