@@ -1,13 +1,44 @@
-[![CircleCI](https://circleci.com/gh/Solant/bimo/tree/master.svg?style=svg)](https://circleci.com/gh/Solant/bimo/tree/master)
-# bimo
-Binary file description language inspired by [Kaitai Struct](https://kaitai.io/) with some new key features:
+[![CircleCI](https://circleci.com/gh/Solant/rebel/tree/master.svg?style=svg)](https://circleci.com/gh/Solant/rebel/tree/master)
+# Rebel
+(<b>R</b>oughly <b>E</b>laborate <b>B</b>inary <b>E</b>xpression <b>L</b>anguage) is a binary file description language and a compiler inspired by [Kaitai Struct](https://kaitai.io/) with some new key features:
+
 * Support of both read and write operations
 * Separate language for data description
 
-## Example
-[Online version](https://bimo-online.netlify.com/)
+It produces minimal output with no external dependencies, so you can use compiled sources with no hassle against build systems (I'm looking at you, CMake)
 
-BiMo is a compiler from DSL to target language that lets you read data from a stream, modify it and write back. Compiler produces sources for minimal runtime and structure declarations (see [online version](https://bimo-online.netlify.com/) for output example).
+[Online demo (fully-fledged browser version)](https://bimo-online.netlify.com/)
+
+## Supported languages
+Core compiler is implemented with TypeScript, however, it can generate sources for any other language.
+
+| Language | Package |
+|----------|---------|
+| TypeScript | [target-ts](https://github.com/Solant/rebel/tree/master/packages/target-ts) |
+| Java | TBD |
+| C++ | TBD |
+
+Any new languages implementations are welcome :^]
+
+## Installation
+Rebel is split into multiple packages, so you can select how you want it to be installed:
+1. CLI version
+```
+npm i @rebel-struct/core @rebel-struct/cli
+```
+2. Programmatic
+```
+npm i @rebel-struct/core
+```
+
+By default `core` won't have any language support, so you'll also need target package for your language, for example for TypeScript
+```
+npm i @rebel-struct/target-ts
+```
+3. Nah, I just need some sources and thats it
+
+Compile sources with [online version](https://bimo-online.netlify.com/) and copy it to your project
+
 
 ## File structure description
 
