@@ -18,32 +18,9 @@ import {
 } from '../parser/ast';
 import { isTypeName } from '../builtInTypes';
 import { assertNever, CompileError } from '../assertions';
+import { GenericVisitor, enterNode, exitNode } from '../visitor';
 
-type DiscriminateUnion<T, K extends keyof T, V extends T[K]> = T extends Record<K, V> ? T : never;
-
-interface EnterExitVisitor<T> {
-    enter?: (node: T, path: AstNode[]) => any,
-    exit?: (node: T, path: AstNode[]) => any,
-}
-type AstNodeVisitor = { [key in AstNodeType]?: EnterExitVisitor<DiscriminateUnion<AstNode, 'type', key>> };
-
-function enterNode<T extends AstNode>(node: T, visitors: AstNodeVisitor[], path: AstNode[]) {
-    for (let visitor of visitors) {
-        const callback = visitor[node.type] as EnterExitVisitor<T> | undefined;
-        if (callback && callback.enter) {
-            callback.enter(node, path);
-        }
-    }
-}
-
-function exitNode<T extends AstNode>(node: T, visitors: AstNodeVisitor[], path: AstNode[]) {
-    for (let visitor of visitors) {
-        const callback = visitor[node.type] as EnterExitVisitor<T> | undefined;
-        if (callback && callback.exit) {
-            callback.exit(node, path);
-        }
-    }
-}
+type AstNodeVisitor = GenericVisitor<AstNodeType, AstNode, undefined, any>;
 
 
 function pathFinder<T extends B, B extends { type: any }>(path: B[], type: any): T | undefined {
@@ -55,82 +32,83 @@ function pathFinder<T extends B, B extends { type: any }>(path: B[], type: any):
     }
 }
 
-function traverse(nodes: AstNode[], visitors: AstNodeVisitor[], path: AstNode[]) {
+function traverse<T>(nodes: AstNode[], visitors: AstNodeVisitor[], path: AstNode[], scope: T) {
     nodes.forEach((node) => {
         const currentPath = [...path, node];
+        const scope = undefined;
         if (node === null) {
             console.log('ooops');
         }
         switch (node.type) {
             case AstNodeType.Structure: {
-                enterNode(node, visitors, currentPath);
-                traverse(node.fields, visitors, currentPath);
-                exitNode(node, visitors, currentPath);
+                enterNode(node, visitors, currentPath, scope);
+                traverse(node.fields, visitors, currentPath, scope);
+                exitNode(node, visitors, currentPath, scope);
                 break;
             }
             case AstNodeType.ComputedField: {
-                enterNode(node, visitors, currentPath);
-                traverse([node.fieldType], visitors, currentPath);
-                traverse([node.expr], visitors, currentPath);
-                exitNode(node, visitors, currentPath);
+                enterNode(node, visitors, currentPath, scope);
+                traverse([node.fieldType], visitors, currentPath, scope);
+                traverse([node.expr], visitors, currentPath, scope);
+                exitNode(node, visitors, currentPath, scope);
                 break;
             }
             case AstNodeType.BinaryOperator: {
-                enterNode(node, visitors, currentPath);
-                traverse([node.left], visitors, currentPath);
-                traverse([node.right], visitors, currentPath);
-                exitNode(node, visitors, currentPath);
+                enterNode(node, visitors, currentPath, scope);
+                traverse([node.left], visitors, currentPath, scope);
+                traverse([node.right], visitors, currentPath, scope);
+                exitNode(node, visitors, currentPath, scope);
                 break;
             }
             case AstNodeType.Function: {
-                enterNode(node, visitors, currentPath);
-                traverse([node.body], visitors, currentPath);
-                exitNode(node, visitors, currentPath);
+                enterNode(node, visitors, currentPath, scope);
+                traverse([node.body], visitors, currentPath, scope);
+                exitNode(node, visitors, currentPath, scope);
                 break;
             }
             case AstNodeType.Variable: {
-                enterNode(node, visitors, currentPath);
-                exitNode(node, visitors, currentPath);
+                enterNode(node, visitors, currentPath, scope);
+                exitNode(node, visitors, currentPath, scope);
                 break;
             }
             case AstNodeType.Field: {
-                enterNode(node, visitors, currentPath);
-                traverse([node.fieldType], visitors, currentPath);
-                exitNode(node, visitors, currentPath);
+                enterNode(node, visitors, currentPath, scope);
+                traverse([node.fieldType], visitors, currentPath, scope);
+                exitNode(node, visitors, currentPath, scope);
                 break;
             }
             case AstNodeType.Document: {
-                enterNode(node, visitors, currentPath);
-                traverse(node.structures, visitors, currentPath);
-                exitNode(node, visitors, currentPath);
+                enterNode(node, visitors, currentPath, scope);
+                traverse(node.structures, visitors, currentPath, scope);
+                exitNode(node, visitors, currentPath, scope);
                 break;
             }
             case AstNodeType.ParametrizedType: {
-                enterNode(node, visitors, currentPath);
-                traverse(node.typeArgs, visitors, currentPath);
+                enterNode(node, visitors, currentPath, scope);
+                traverse(node.typeArgs, visitors, currentPath, scope);
                 // FIXME: nested type args
-                traverse(node.args.filter(Boolean), visitors, currentPath);
-                exitNode(node, visitors, currentPath);
+                traverse(node.args.filter(Boolean), visitors, currentPath, scope);
+                exitNode(node, visitors, currentPath, scope);
                 break;
             }
             case AstNodeType.SimpleType: {
-                enterNode(node, visitors, currentPath);
-                exitNode(node, visitors, currentPath);
+                enterNode(node, visitors, currentPath, scope);
+                exitNode(node, visitors, currentPath, scope);
                 break;
             }
             case AstNodeType.FieldRef: {
-                enterNode(node, visitors, currentPath);
-                exitNode(node, visitors, currentPath);
+                enterNode(node, visitors, currentPath, scope);
+                exitNode(node, visitors, currentPath, scope);
                 break;
             }
             case AstNodeType.Number: {
-                enterNode(node, visitors, currentPath);
-                exitNode(node, visitors, currentPath);
+                enterNode(node, visitors, currentPath, scope);
+                exitNode(node, visitors, currentPath, scope);
                 break;
             }
             case AstNodeType.Endianness: {
-                enterNode(node, visitors, currentPath);
-                exitNode(node, visitors, currentPath);
+                enterNode(node, visitors, currentPath, scope);
+                exitNode(node, visitors, currentPath, scope);
                 break;
             }
             default: {
@@ -357,7 +335,7 @@ export function transform(ast: BiMoAst): BaseType[] {
                             }
                         }
                     },
-                }], [...path, node]);
+                }], [...path, node], undefined);
             },
             exit(node) {
                 const t = types.head();
@@ -411,7 +389,7 @@ export function transform(ast: BiMoAst): BaseType[] {
         },
     });
 
-    traverse([ast], visitors, []);
+    traverse([ast], visitors, [], undefined);
 
     return output;
 }
