@@ -1,0 +1,65 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Parser IR transformer should add body 1`] = `
+Object {
+  "body": Object {
+    "left": Object {
+      "pos": Object {
+        "column": 27,
+        "line": 3,
+        "offset": 57,
+      },
+      "type": "Number",
+      "value": 3,
+    },
+    "op": "+",
+    "right": Object {
+      "body": Object {
+        "type": "Var",
+        "value": "body",
+      },
+      "name": "lengthof",
+      "type": "Function",
+    },
+    "type": "BinaryOperator",
+  },
+  "pos": Object {
+    "column": 27,
+    "line": 3,
+    "offset": 57,
+  },
+  "type": "Expression",
+}
+`;
+
+exports[`Parser should parse 1`] = `
+Object {
+  "body": Object {
+    "left": Object {
+      "pos": Object {
+        "column": 27,
+        "line": 3,
+        "offset": 57,
+      },
+      "type": "Number",
+      "value": 3,
+    },
+    "op": "+",
+    "right": Object {
+      "body": Object {
+        "type": "Var",
+        "value": "body",
+      },
+      "name": "lengthof",
+      "type": "Function",
+    },
+    "type": "BinaryOperator",
+  },
+  "pos": Object {
+    "column": 27,
+    "line": 3,
+    "offset": 57,
+  },
+  "type": "Expression",
+}
+`;

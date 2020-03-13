@@ -1,13 +1,4 @@
-import {
-    BaseType,
-    BuiltInType,
-    ComputedField,
-    CustomType,
-    Field,
-    isBuiltInArray,
-    isBuiltInType,
-    TypeTag
-} from './ir-ast';
+import { BaseType, ComputedField, CustomType, Field, isBuiltInArray, isBuiltInType, TypeTag } from './ir-ast';
 import {
     AstNode,
     AstNodeType,
@@ -18,7 +9,7 @@ import {
 } from '../parser/ast';
 import { isTypeName } from '../builtInTypes';
 import { assertNever, CompileError } from '../assertions';
-import { GenericVisitor, enterNode, exitNode } from '../visitor';
+import { enterNode, exitNode, GenericVisitor } from '../visitor';
 
 type AstNodeVisitor = GenericVisitor<AstNodeType, AstNode, undefined, any>;
 
@@ -108,6 +99,12 @@ function traverse<T>(nodes: AstNode[], visitors: AstNodeVisitor[], path: AstNode
             }
             case AstNodeType.Endianness: {
                 enterNode(node, visitors, currentPath, scope);
+                exitNode(node, visitors, currentPath, scope);
+                break;
+            }
+            case AstNodeType.Expression: {
+                enterNode(node, visitors, currentPath, scope);
+                traverse([node.body], visitors, currentPath, scope);
                 exitNode(node, visitors, currentPath, scope);
                 break;
             }
@@ -241,19 +238,10 @@ export function transform(ast: BiMoAst): BaseType[] {
                 fields.pop();
             },
         },
-        [AstNodeType.BinaryOperator]: {
+        [AstNodeType.Expression]: {
             enter(node) {
                 const f = fields.head() as ComputedField;
-                // FIXME: remove f.expression null check by moving it to child visitor
-                if (f.expression && Object.keys(f.expression).length === 0) {
-                    f.expression = node;
-                }
-            }
-        },
-        [AstNodeType.Function]: {
-            enter(node) {
-                const f = fields.head() as ComputedField;
-                // FIXME: remove f.expression null check by moving it to child visitor
+                // FIXME: remove f.body null check by moving it to child visitor
                 if (f.expression && Object.keys(f.expression).length === 0) {
                     f.expression = node;
                 }
@@ -296,38 +284,14 @@ export function transform(ast: BiMoAst): BaseType[] {
                 }
                 types.push(t);
 
-                // Find type expression to parse
+                // Find type body to parse
                 if (node.args.length && node.args[0] === null) {
                     return;
                 }
 
                 // FIXME: nested type args
                 traverse(node.args, [{
-                    [AstNodeType.Function]: {
-                        enter(node) {
-                            const type = types.head();
-                            if (isBuiltInType(type) && type.args.length === 0) {
-                                type.args.push(node);
-                            }
-                        }
-                    },
-                    [AstNodeType.Number]: {
-                        enter(node) {
-                            const type = types.head();
-                            if (isBuiltInType(type) && type.args.length === 0) {
-                                type.args.push(node);
-                            }
-                        }
-                    },
-                    [AstNodeType.BinaryOperator]: {
-                        enter(node) {
-                            const type = types.head();
-                            if (isBuiltInType(type) && type.args.length === 0) {
-                                type.args.push(node);
-                            }
-                        }
-                    },
-                    [AstNodeType.Variable]: {
+                    [AstNodeType.Expression]: {
                         enter(node) {
                             const type = types.head();
                             if (isBuiltInType(type) && type.args.length === 0) {

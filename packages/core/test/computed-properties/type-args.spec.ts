@@ -7,7 +7,7 @@ import { Expression } from '../../parser/ast';
 import BinaryOperator = Expression.BinaryOperator;
 
 describe('Computed properties', function () {
-    it('should transform type arg expression', () => {
+    it('should transform type arg body', () => {
         const result: Ast.DocumentAstNode = parse(`
         default struct Test {
             size: i32 = lengthof(data)*4;
@@ -18,14 +18,14 @@ describe('Computed properties', function () {
         const ir = transformIR(result);
 
         // @ts-ignore
-        expect((((ir[0] as CustomType).props[0] as ComputedField).expression as BinaryOperator).left.name).toBe('lengthof');
+        expect((((ir[0] as CustomType).props[0] as ComputedField).expression.body as BinaryOperator).left.name).toBe('lengthof');
         // @ts-ignore
-        expect((((ir[0] as CustomType).props[0] as ComputedField).expression as BinaryOperator).right.value).toBe(4);
+        expect((((ir[0] as CustomType).props[0] as ComputedField).expression.body as BinaryOperator).right.value).toBe(4);
 
         // @ts-ignore
-        expect((((ir[0] as CustomType).props[1] as ComputedField).type.args[0] as BinaryOperator).left.value).toBe('size');
+        expect((((ir[0] as CustomType).props[1] as ComputedField).type.args[0].body as BinaryOperator).left.value).toBe('size');
         // @ts-ignore
-        expect((((ir[0] as CustomType).props[1] as ComputedField).type.args[0] as BinaryOperator).right.value).toBe(4);
+        expect((((ir[0] as CustomType).props[1] as ComputedField).type.args[0].body as BinaryOperator).right.value).toBe(4);
     });
 
     it('should create target ast', () => {

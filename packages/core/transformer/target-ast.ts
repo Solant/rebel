@@ -1,6 +1,6 @@
 import { BaseType, BuiltInType, CustomType, TypeArgument } from './ir-ast';
 import { Expression } from '../parser/ast';
-import ExpressionNode = Expression.ExpressionNode;
+import ExpressionNode = Expression.Expression;
 
 export enum ExpressionTag {
     MainWriteFunctionDeclaration = 'MainWriteFunctionDeclaration',

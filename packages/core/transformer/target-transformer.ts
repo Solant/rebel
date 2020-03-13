@@ -39,7 +39,7 @@ function getTypeDeclaration(type: CustomType): TargetAst.TypeDeclaration {
     }
 }
 
-function getWriteExpr(id: string, type: BaseType, expr?: Expression.ExpressionNode): WriteArrayType | WriteBuiltInType | WriteCustomType {
+function getWriteExpr(id: string, type: BaseType, expr?: Expression.Expression): WriteArrayType | WriteBuiltInType | WriteCustomType {
     switch (type.tag) {
         case TypeTag.BuiltIn:
             if (isBuiltInArray(type)) {
