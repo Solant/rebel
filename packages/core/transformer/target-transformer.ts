@@ -1,13 +1,4 @@
-import {
-    BaseType,
-    BuiltInType,
-    ComputedField,
-    CustomType,
-    Field,
-    isBuiltInArray,
-    isCustomType,
-    TypeTag
-} from './ir-ast';
+import { BaseType, ComputedField, CustomType, Field, isBuiltInArray, isCustomType, TypeTag } from './ir-ast';
 import * as TargetAst from './target-ast';
 import {
     ExpressionTag,
@@ -39,7 +30,7 @@ function getTypeDeclaration(type: CustomType): TargetAst.TypeDeclaration {
     }
 }
 
-function getWriteExpr(id: string, type: BaseType, expr?: Expression.Expression): WriteArrayType | WriteBuiltInType | WriteCustomType {
+function getWriteExpr(id: string, type: BaseType, expr?: Expression.ExpressionNode): WriteArrayType | WriteBuiltInType | WriteCustomType {
     switch (type.tag) {
         case TypeTag.BuiltIn:
             if (isBuiltInArray(type)) {

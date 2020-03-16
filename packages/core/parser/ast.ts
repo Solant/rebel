@@ -41,7 +41,7 @@ export interface ComputedFieldAstNode extends BaseAstNode {
     type: AstNodeType.ComputedField,
     name: string,
     fieldType: SimpleFieldTypeAstNode | ParamFieldTypeAstNode,
-    expr: Expression.Expression,
+    expr: Expression.ExpressionNode,
 }
 
 export interface SimpleFieldTypeAstNode extends BaseAstNode {
@@ -53,7 +53,7 @@ export interface ParamFieldTypeAstNode extends BaseAstNode {
     type: AstNodeType.ParametrizedType,
     typeName: string,
     typeArgs: Array<ParamFieldTypeAstNode | EndiannessLiteralAstNode | NumberLiteralAstNode | FieldRefAstNode>,
-    args: Expression.Expression[],
+    args: Expression.ExpressionNode[],
 }
 
 export interface DocumentAstNode extends BaseAstNode {
@@ -85,8 +85,8 @@ export type AstNode = StructureAstNode
     | NumberLiteralAstNode
     | EndiannessLiteralAstNode
     | FieldRefAstNode
-    | Expression.Expression
-    | Expression.ExpressionNode;
+    | Expression.ExpressionNode
+    | Expression.BaseExpression;
 
 export namespace Expression {
     export interface Variable {
@@ -108,18 +108,18 @@ export namespace Expression {
     export interface BinaryOperator {
         type: AstNodeType.BinaryOperator,
         op: '+' | '-' | '*' | '/',
-        left: ExpressionNode,
-        right: ExpressionNode,
+        left: BaseExpression,
+        right: BaseExpression,
     }
 
-    export type ExpressionNode = Variable
+    export type BaseExpression = Variable
         | Number
         | Function
         | BinaryOperator;
 
-    export interface Expression extends BaseAstNode {
+    export interface ExpressionNode extends BaseAstNode {
         type: AstNodeType.Expression,
-        body: ExpressionNode
+        body: BaseExpression
     }
 }
 

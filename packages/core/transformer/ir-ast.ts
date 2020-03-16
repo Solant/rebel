@@ -10,7 +10,7 @@ export interface BuiltInType {
     tag: TypeTag.BuiltIn,
     name: TypeName,
     typeArgs: TypeArgument,
-    args: Expression.Expression[],
+    args: Expression.ExpressionNode[],
 }
 
 export function isBuiltInType(t: BaseType): t is BuiltInType {
@@ -55,5 +55,5 @@ export interface ComputedField {
     access: 'public' | 'private',
     type: BaseType,
     computed: true,
-    expression: Expression.Expression,
+    expression: Expression.ExpressionNode,
 }
