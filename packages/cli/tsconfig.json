@@ -4,7 +4,8 @@
     "outDir": "lib",
     "types": [
       "@types/node"
-    ]
+    ],
+    "rootDir": "./"
   },
   "exclude": [
     "node_modules",

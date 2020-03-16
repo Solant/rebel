@@ -104,7 +104,7 @@ export const ts: generatorModule.GeneratorModule = {
                 if (node.computed.lengthOf) {
                     scope.result += `${'\t'.repeat(scope.level)}stream.write${generatorModule.capitalize(node.type.name)}(struct.${node.computed.lengthOf}.length);\n`;
                 } else if (node.expression) {
-                    const exprToString = (node: parserAst.Expression.ExpressionNode): string => {
+                    const exprToString = (node: parserAst.Expression.BaseExpression): string => {
                         switch(node.type) {
                             case parserAst.AstNodeType.Number:
                                 return node.value.toString();
@@ -123,7 +123,7 @@ export const ts: generatorModule.GeneratorModule = {
                         }
                     };
 
-                    scope.result += `${'\t'.repeat(scope.level)}const ${node.id} = ${exprToString(node.expression)};\n`;
+                    scope.result += `${'\t'.repeat(scope.level)}const ${node.id} = ${exprToString(node.expression.body)};\n`;
                     scope.result += `${'\t'.repeat(scope.level)}stream.write${generatorModule.capitalize(node.type.name)}(${node.id});\n`;
 
                 } else {
@@ -147,7 +147,7 @@ export const ts: generatorModule.GeneratorModule = {
 
                 let sizeExpr = '';
                 if (node.sizeExpr) {
-                    const exprToString = (node: parserAst.Expression.ExpressionNode): string => {
+                    const exprToString = (node: parserAst.Expression.BaseExpression): string => {
                         switch(node.type) {
                             case parserAst.AstNodeType.Number:
                                 return node.value.toString();
@@ -165,7 +165,7 @@ export const ts: generatorModule.GeneratorModule = {
                                 return '';
                         }
                     };
-                    sizeExpr = exprToString(node.sizeExpr);
+                    sizeExpr = exprToString(node.sizeExpr.body);
                 }
 
                 scope.result += `${'\t'.repeat(scope.level)}for (let i = 0; i < ${sizeExpr}; i++) {\n`;
@@ -187,7 +187,7 @@ export const ts: generatorModule.GeneratorModule = {
                 }
 
                 if (node.expression) {
-                    const exprToString = (node: parserAst.Expression.ExpressionNode): string => {
+                    const exprToString = (node: parserAst.Expression.BaseExpression): string => {
                         switch(node.type) {
                             case parserAst.AstNodeType.Number:
                                 return node.value.toString();
@@ -205,7 +205,7 @@ export const ts: generatorModule.GeneratorModule = {
                                 return '';
                         }
                     };
-                    expr = exprToString(node.expression);
+                    expr = exprToString(node.expression.body);
                 }
 
                 scope.result += `${'\t'.repeat(scope.level)}for (let i = 0; i < ${expr}; i++) {\n`;

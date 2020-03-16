@@ -4,7 +4,7 @@
   "description": "Binary format declaration language and a compiler",
   "main": "dist/index.js",
   "scripts": {
-    "build": "lerna run build",
+    "build": "lerna run clean && lerna run build",
     "test": "jest"
   },
   "bin": {

@@ -6,6 +6,7 @@
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "scripts": {
+    "clean": "rm -rf lib",
     "build": "npm run generate-parser && tsc",
     "test": "npm run generate-parser && jest",
     "generate-parser": "pegjs --plugin ./node_modules/ts-pegjs -o parser/document.ts parser/document.pegjs"
