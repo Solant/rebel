@@ -52,6 +52,7 @@ EndiannessLiteral = val:('le' / 'be') {
     }
 }
 
+// TODO: deprecated
 FieldRef = '#' fieldName:[a-zA-Z0-9]+ {
 	return {
 	    type: 'fieldref',
@@ -60,7 +61,7 @@ FieldRef = '#' fieldName:[a-zA-Z0-9]+ {
     };
 }
 
-PossibleTypeArgs = FieldRef / ParametrizedType / NumberLiteral / EndiannessLiteral / SimpleType
+PossibleTypeArgs = FieldRef / EndiannessLiteral / ParametrizedType / NumberLiteral / SimpleType
 
 TypeArg = _ arg:PossibleTypeArgs ','? _ {
 	return arg;

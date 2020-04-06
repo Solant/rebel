@@ -12,6 +12,7 @@ export enum AstNodeType {
     Variable = 'Var',
     Number = 'Number',
     Function = 'Function',
+    String = 'String',
 }
 
 export interface NodePosition {
@@ -99,6 +100,11 @@ export namespace Expression {
         value: number,
     }
 
+    export interface String {
+        type: AstNodeType.String,
+        value: string,
+    }
+
     export interface Function {
         type: AstNodeType.Function,
         name: string,
@@ -115,7 +121,8 @@ export namespace Expression {
     export type BaseExpression = Variable
         | Number
         | Function
-        | BinaryOperator;
+        | BinaryOperator
+        | String;
 
     export interface ExpressionNode extends BaseAstNode {
         type: AstNodeType.Expression,

@@ -108,6 +108,11 @@ function traverse<T>(nodes: AstNode[], visitors: AstNodeVisitor[], path: AstNode
                 exitNode(node, visitors, currentPath, scope);
                 break;
             }
+            case AstNodeType.String: {
+                enterNode(node, visitors, currentPath, scope);
+                exitNode(node, visitors, currentPath, scope);
+                break;
+            }
             default: {
                 assertNever(node);
             }
