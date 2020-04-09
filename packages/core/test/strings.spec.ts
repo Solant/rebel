@@ -1,5 +1,7 @@
 import { parse } from '../parser/document';
 import * as Ast from '../parser/ast';
+import { transform as irTransform } from '../transformer/ir-transformer';
+import { transform as targetTransform } from '../transformer/target-transformer';
 
 describe('Strings', function () {
     it('should parse', () => {
@@ -9,7 +11,7 @@ describe('Strings', function () {
         }
         `);
 
-        // @ts-ignore
-        console.log(result.structures[0].fields[0].fieldType);
+        const ir = irTransform(result);
+        const target = targetTransform(ir);
     });
 });
