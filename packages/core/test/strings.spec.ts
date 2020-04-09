@@ -7,7 +7,7 @@ describe('Strings', function () {
     it('should parse', () => {
         const result: Ast.DocumentAstNode = parse(`
         default struct Test {
-            length: string<i32<le>>(3);
+            length: string(3, "ascii");
         }
         `);
 

@@ -36,6 +36,14 @@ SimpleType = typeName:TypeName {
     };
 }
 
+StringLiteral = '"' text:[a-zA-Z]* '"' {
+	return {
+	    type: 'String',
+	    pos: location().start,
+	    value: text.join('')
+    };
+}
+
 NumberLiteral = [0-9]+ {
 	return {
 	    type: 'Number',
@@ -67,13 +75,17 @@ TypeArg = _ arg:PossibleTypeArgs ','? _ {
 	return arg;
 }
 
-ParametrizedType = typeName:TypeName '<' typeArgs:TypeArg+ '>' '('? args:Expression? ')'? {
+ExpressionArg = _ arg:Expression ','? _ {
+    return arg;
+}
+
+ParametrizedType = typeName:TypeName '<'? typeArgs:TypeArg* '>'? '('? args:ExpressionArg* ')'? {
 	return {
 	    type: 'parametrizedtype',
 	    pos: location().start,
 	    typeName: typeName.join(''),
 	    typeArgs,
-	    args: [args],
+	    args,
     }
 }
 
@@ -131,7 +143,7 @@ multiplicative
   / primary
 
 primary
-  = NumberLiteral / fun / var
+  = NumberLiteral / fun / var / StringLiteral
   / "(" additive:additive ")" { return additive; }
 
 fun = name:[a-zA-Z]+ '(' body:var ')' {
