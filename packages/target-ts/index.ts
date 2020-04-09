@@ -1,6 +1,7 @@
 import { targetAst, irAst, generatorModule, parserAst } from '@rebel-struct/core';
 import { TypeName } from '@rebel-struct/core/builtInTypes';
 import injectedCode from './runtime';
+import { assertNever } from '@rebel-struct/core/lib/assertions';
 
 function typeTransformer(type: irAst.BaseType): string {
     type TypeMap = { [key in TypeName]: string };
@@ -14,6 +15,7 @@ function typeTransformer(type: irAst.BaseType): string {
         u32: 'number',
         u64: 'number',
         array: '[]',
+        string: 'string',
     };
 
     switch (type.tag) {
@@ -26,6 +28,31 @@ function typeTransformer(type: irAst.BaseType): string {
             return type.name;
     }
 }
+
+const exprToString = (node: parserAst.Expression.BaseExpression): string => {
+    switch(node.type) {
+        case parserAst.AstNodeType.Number:
+            return node.value.toString();
+        case parserAst.AstNodeType.BinaryOperator:
+            return exprToString(node.left) + node.op + exprToString(node.right);
+        case parserAst.AstNodeType.Variable:
+            return `struct.${node.value}`;
+        case parserAst.AstNodeType.String: {
+            return `"${node.value}"`
+        }
+        case parserAst.AstNodeType.Function: {
+            const body = exprToString(node.body);
+            if (node.name === 'lengthof') {
+                return `${body}.length`;
+            } else {
+                throw new Error(`Unknown function ${node.name}`)
+            }
+        }
+        default:
+            assertNever(node);
+            return "";
+    }
+};
 
 export const ts: generatorModule.GeneratorModule = {
     fileExtension: 'ts',
@@ -86,7 +113,8 @@ export const ts: generatorModule.GeneratorModule = {
         },
         ReadBuiltInType: {
             enter(node, path, scope) {
-                scope.result += `${'\t'.repeat(scope.level)}const ${node.id}: ${typeTransformer(node.type)} = stream.read${generatorModule.capitalize(node.type.name)}();\n`;
+                const args = node.type.args.map(a => exprToString(a.body)).join(', ');
+                scope.result += `${'\t'.repeat(scope.level)}const ${node.id}: ${typeTransformer(node.type)} = stream.read${generatorModule.capitalize(node.type.name)}(${args});\n`;
             },
         },
         ReadCustomType: {

@@ -12,7 +12,7 @@ function write(name: string, content: string) {
     return writeFileSync(resolve(__dirname, name), content, { encoding: 'utf-8' });
 }
 
-describe('Arrays', function () {
+describe('Strings', function () {
     it('should read and write properly', async () => {
         await run({
             cwd: __dirname,
@@ -23,8 +23,8 @@ describe('Arrays', function () {
             },
             bimo: {
                 prepare() {
-                    const source = compile(read('array.bimo'), ts, { emitRuntime: true, target: 'ts' });
-                    write('array-compiled.ts', source.fileContent);
+                    const source = compile(read('strings.bimo'), ts, { emitRuntime: true, target: 'ts' });
+                    write('strings-compiled.ts', source.fileContent);
                 },
                 read: 'npx ts-node main.ts test.bin read',
                 write: 'npx ts-node main.ts test.bin write',

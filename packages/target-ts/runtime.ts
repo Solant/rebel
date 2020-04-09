@@ -22,7 +22,7 @@ class RebelStream {
     readString(length: number, encoding: string = 'ascii'): string {
         let result = '';
         if (encoding === 'ascii') {
-            const buf = new Uint8Array(this.arrayBuffer.slice(this.pos + length));
+            const buf = new Uint8Array(this.arrayBuffer.slice(this.pos, this.pos + length));
             for (let i = 0; i < buf.length; i++) {
                 result += String.fromCharCode(buf[i]);
             }
