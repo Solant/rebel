@@ -6,7 +6,7 @@
   "main": "lib/index.js",
   "scripts": {
     "build": "tsc",
-    "clean": "rm -rf lib"
+    "clean": "rimraf lib"
   },
   "files": [
     "lib/",
@@ -26,6 +26,7 @@
   "devDependencies": {
     "@rebel-struct/core": "^0.2.2",
     "@types/node": "^12.7.2",
+    "rimraf": "^3.0.2",
     "typescript": "^3.5.3"
   },
   "dependencies": {},
