@@ -5,7 +5,8 @@
   "description": "Binary format declaration language and a compiler",
   "main": "lib/index.js",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "clean": "rm -rf lib"
   },
   "bin": {
     "bimo": "lib/index.js"

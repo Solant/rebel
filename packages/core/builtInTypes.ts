@@ -8,6 +8,7 @@ export enum Type {
     u32 = 'u32',
     u64 = 'u64',
     array = 'array',
+    string = 'string',
 }
 
 export type TypeName = keyof typeof Type;

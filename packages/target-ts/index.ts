@@ -1,6 +1,7 @@
 import { targetAst, irAst, generatorModule, parserAst } from '@rebel-struct/core';
 import { TypeName } from '@rebel-struct/core/builtInTypes';
-import { injectedCode } from './runtime';
+import injectedCode from './runtime';
+import { assertNever } from '@rebel-struct/core/lib/assertions';
 
 function typeTransformer(type: irAst.BaseType): string {
     type TypeMap = { [key in TypeName]: string };
@@ -14,6 +15,7 @@ function typeTransformer(type: irAst.BaseType): string {
         u32: 'number',
         u64: 'number',
         array: '[]',
+        string: 'string',
     };
 
     switch (type.tag) {
@@ -26,6 +28,31 @@ function typeTransformer(type: irAst.BaseType): string {
             return type.name;
     }
 }
+
+const exprToString = (node: parserAst.Expression.BaseExpression): string => {
+    switch(node.type) {
+        case parserAst.AstNodeType.Number:
+            return node.value.toString();
+        case parserAst.AstNodeType.BinaryOperator:
+            return exprToString(node.left) + node.op + exprToString(node.right);
+        case parserAst.AstNodeType.Variable:
+            return `struct.${node.value}`;
+        case parserAst.AstNodeType.String: {
+            return `"${node.value}"`
+        }
+        case parserAst.AstNodeType.Function: {
+            const body = exprToString(node.body);
+            if (node.name === 'lengthof') {
+                return `${body}.length`;
+            } else {
+                throw new Error(`Unknown function ${node.name}`)
+            }
+        }
+        default:
+            assertNever(node);
+            return "";
+    }
+};
 
 export const ts: generatorModule.GeneratorModule = {
     fileExtension: 'ts',
@@ -75,7 +102,7 @@ export const ts: generatorModule.GeneratorModule = {
         FunctionParameter: {
             enter(node, path, scope) {
                 if (node.type === 'BimoStream') {
-                    scope.result += `${node.id}: ${node.type}`;
+                    scope.result += `${node.id}: RebelStream`;
                 } else {
                     scope.result += `${node.id}: ${typeTransformer(node.type)}`;
                 }
@@ -86,7 +113,8 @@ export const ts: generatorModule.GeneratorModule = {
         },
         ReadBuiltInType: {
             enter(node, path, scope) {
-                scope.result += `${'\t'.repeat(scope.level)}const ${node.id}: ${typeTransformer(node.type)} = stream.read${generatorModule.capitalize(node.type.name)}();\n`;
+                const args = node.type.args.map(a => exprToString(a.body)).join(', ');
+                scope.result += `${'\t'.repeat(scope.level)}const ${node.id}: ${typeTransformer(node.type)} = stream.read${generatorModule.capitalize(node.type.name)}(${args});\n`;
             },
         },
         ReadCustomType: {
@@ -104,7 +132,7 @@ export const ts: generatorModule.GeneratorModule = {
                 if (node.computed.lengthOf) {
                     scope.result += `${'\t'.repeat(scope.level)}stream.write${generatorModule.capitalize(node.type.name)}(struct.${node.computed.lengthOf}.length);\n`;
                 } else if (node.expression) {
-                    const exprToString = (node: parserAst.Expression.ExpressionNode): string => {
+                    const exprToString = (node: parserAst.Expression.BaseExpression): string => {
                         switch(node.type) {
                             case parserAst.AstNodeType.Number:
                                 return node.value.toString();
@@ -123,7 +151,7 @@ export const ts: generatorModule.GeneratorModule = {
                         }
                     };
 
-                    scope.result += `${'\t'.repeat(scope.level)}const ${node.id} = ${exprToString(node.expression)};\n`;
+                    scope.result += `${'\t'.repeat(scope.level)}const ${node.id} = ${exprToString(node.expression.body)};\n`;
                     scope.result += `${'\t'.repeat(scope.level)}stream.write${generatorModule.capitalize(node.type.name)}(${node.id});\n`;
 
                 } else {
@@ -147,7 +175,7 @@ export const ts: generatorModule.GeneratorModule = {
 
                 let sizeExpr = '';
                 if (node.sizeExpr) {
-                    const exprToString = (node: parserAst.Expression.ExpressionNode): string => {
+                    const exprToString = (node: parserAst.Expression.BaseExpression): string => {
                         switch(node.type) {
                             case parserAst.AstNodeType.Number:
                                 return node.value.toString();
@@ -165,7 +193,7 @@ export const ts: generatorModule.GeneratorModule = {
                                 return '';
                         }
                     };
-                    sizeExpr = exprToString(node.sizeExpr);
+                    sizeExpr = exprToString(node.sizeExpr.body);
                 }
 
                 scope.result += `${'\t'.repeat(scope.level)}for (let i = 0; i < ${sizeExpr}; i++) {\n`;
@@ -187,7 +215,7 @@ export const ts: generatorModule.GeneratorModule = {
                 }
 
                 if (node.expression) {
-                    const exprToString = (node: parserAst.Expression.ExpressionNode): string => {
+                    const exprToString = (node: parserAst.Expression.BaseExpression): string => {
                         switch(node.type) {
                             case parserAst.AstNodeType.Number:
                                 return node.value.toString();
@@ -205,7 +233,7 @@ export const ts: generatorModule.GeneratorModule = {
                                 return '';
                         }
                     };
-                    expr = exprToString(node.expression);
+                    expr = exprToString(node.expression.body);
                 }
 
                 scope.result += `${'\t'.repeat(scope.level)}for (let i = 0; i < ${expr}; i++) {\n`;
@@ -219,21 +247,22 @@ export const ts: generatorModule.GeneratorModule = {
         MainReadFunctionDeclaration: {
             enter(node, path, scope) {
                 scope.result += `export function read(buffer: Buffer): ${node.type.name} {\n`;
-                scope.result += `    const stream: BimoStream = new BimoStream(buffer);\n`;
+                scope.result += `    const stream: RebelStream = new RebelStream(buffer);\n`;
                 scope.result += `    return read${node.type.name}(stream);\n`;
                 scope.result += `}\n`;
             },
         },
         MainWriteFunctionDeclaration: {
             enter(node, path, scope) {
-                scope.result += `export function write(buffer: Buffer, source: ${node.type.name}): void {\n`;
-                scope.result += `    const stream: BimoStream = new BimoStream(buffer);\n`;
+                scope.result += `export function write(buffer: Buffer, source: ${node.type.name}): ArrayBuffer {\n`;
+                scope.result += `    const stream: RebelStream = new RebelStream(buffer);\n`;
                 scope.result += `    write${node.type.name}(source, stream);\n`;
+                scope.result += `    return stream.arrayBuffer;\n`;
                 scope.result += `}\n`;
             },
         },
     }],
-    injects: injectedCode,
+    injects: () => injectedCode,
 };
 
 export default ts;

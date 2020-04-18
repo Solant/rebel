@@ -36,6 +36,14 @@ SimpleType = typeName:TypeName {
     };
 }
 
+StringLiteral = '"' text:[a-zA-Z]* '"' {
+	return {
+	    type: 'String',
+	    pos: location().start,
+	    value: text.join('')
+    };
+}
+
 NumberLiteral = [0-9]+ {
 	return {
 	    type: 'Number',
@@ -52,6 +60,7 @@ EndiannessLiteral = val:('le' / 'be') {
     }
 }
 
+// TODO: deprecated
 FieldRef = '#' fieldName:[a-zA-Z0-9]+ {
 	return {
 	    type: 'fieldref',
@@ -60,19 +69,23 @@ FieldRef = '#' fieldName:[a-zA-Z0-9]+ {
     };
 }
 
-PossibleTypeArgs = FieldRef / ParametrizedType / NumberLiteral / EndiannessLiteral / SimpleType
+PossibleTypeArgs = FieldRef / EndiannessLiteral / ParametrizedType / NumberLiteral / SimpleType
 
 TypeArg = _ arg:PossibleTypeArgs ','? _ {
 	return arg;
 }
 
-ParametrizedType = typeName:TypeName '<' typeArgs:TypeArg+ '>' '('? args:ExpressionBody? ')'? {
+ExpressionArg = _ arg:Expression ','? _ {
+    return arg;
+}
+
+ParametrizedType = typeName:TypeName '<'? typeArgs:TypeArg* '>'? '('? args:ExpressionArg* ')'? {
 	return {
 	    type: 'parametrizedtype',
 	    pos: location().start,
 	    typeName: typeName.join(''),
 	    typeArgs,
-	    args: [args],
+	    args,
     }
 }
 
@@ -87,7 +100,7 @@ FieldDeclaration = _ variable:VarName _ ':' _ fieldType:Type _ ';' {
     }
 }
 
-ComputedFieldDeclaration = _ variable:VarName _ ':' _ fieldType:Type _ '=' _ expr:ExpressionBody _ ';' {
+ComputedFieldDeclaration = _ variable:VarName _ ':' _ fieldType:Type _ '=' _ expr:Expression _ ';' {
     return {
         type: 'computedfield',
         pos: location().start,
@@ -97,11 +110,11 @@ ComputedFieldDeclaration = _ variable:VarName _ ':' _ fieldType:Type _ '=' _ exp
     }
 }
 
-ExpressionLiteral = _ '${' _ expr:ExpressionBody _ '}' {
+Expression = _ expr:ExpressionBody  {
     return {
-        type: 'ExpressionLiteral',
+        type: 'Expression',
         pos: location().start,
-        expression: expr,
+        body: expr,
     };
 }
 
@@ -130,7 +143,7 @@ multiplicative
   / primary
 
 primary
-  = NumberLiteral / fun / var
+  = NumberLiteral / fun / var / StringLiteral
   / "(" additive:additive ")" { return additive; }
 
 fun = name:[a-zA-Z]+ '(' body:var ')' {

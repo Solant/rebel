@@ -1,0 +1,3 @@
+default struct MyString {
+    data: string(10, "ascii");
+}

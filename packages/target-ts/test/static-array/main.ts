@@ -13,7 +13,7 @@ if (mode == 'read') {
 }
 
 if (mode == 'write') {
-    const buffer = Buffer.alloc(1000);
+    const buffer = Buffer.alloc(10 * 4 + 4);
     const data: ArrayStruct = {
         size: 10,
         data: [],
@@ -21,6 +21,5 @@ if (mode == 'write') {
     for (let i = 0; i < 10; i++) {
         data.data.push(+(Math.random() * 100000).toFixed(0));
     }
-    write(buffer, data);
-    writeFileSync(file, buffer);
+    writeFileSync(file, Buffer.from(write(buffer, data)));
 }

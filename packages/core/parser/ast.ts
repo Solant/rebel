@@ -7,10 +7,12 @@ export enum AstNodeType {
     ParametrizedType = 'parametrizedtype',
     Endianness = 'endianness',
     FieldRef = 'fieldref',
+    Expression = 'Expression',
     BinaryOperator = 'BinaryOperator',
     Variable = 'Var',
     Number = 'Number',
     Function = 'Function',
+    String = 'String',
 }
 
 export interface NodePosition {
@@ -84,7 +86,8 @@ export type AstNode = StructureAstNode
     | NumberLiteralAstNode
     | EndiannessLiteralAstNode
     | FieldRefAstNode
-    | Expression.ExpressionNode;
+    | Expression.ExpressionNode
+    | Expression.BaseExpression;
 
 export namespace Expression {
     export interface Variable {
@@ -97,6 +100,11 @@ export namespace Expression {
         value: number,
     }
 
+    export interface String {
+        type: AstNodeType.String,
+        value: string,
+    }
+
     export interface Function {
         type: AstNodeType.Function,
         name: string,
@@ -106,14 +114,20 @@ export namespace Expression {
     export interface BinaryOperator {
         type: AstNodeType.BinaryOperator,
         op: '+' | '-' | '*' | '/',
-        left: ExpressionNode,
-        right: ExpressionNode,
+        left: BaseExpression,
+        right: BaseExpression,
     }
 
-    export type ExpressionNode = Variable
+    export type BaseExpression = Variable
         | Number
         | Function
-        | BinaryOperator;
+        | BinaryOperator
+        | String;
+
+    export interface ExpressionNode extends BaseAstNode {
+        type: AstNodeType.Expression,
+        body: BaseExpression
+    }
 }
 
 export type BiMoAst = DocumentAstNode;

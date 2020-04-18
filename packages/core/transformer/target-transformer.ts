@@ -1,13 +1,4 @@
-import {
-    BaseType,
-    BuiltInType,
-    ComputedField,
-    CustomType,
-    Field,
-    isBuiltInArray,
-    isCustomType,
-    TypeTag
-} from './ir-ast';
+import { BaseType, ComputedField, CustomType, Field, isBuiltInArray, isCustomType, TypeTag } from './ir-ast';
 import * as TargetAst from './target-ast';
 import {
     ExpressionTag,
