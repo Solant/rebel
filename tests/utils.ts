@@ -12,7 +12,7 @@ function execPromise(command: string, cwd: string): Promise<string> {
 interface TestCase {
     cwd: string,
     bimo: TestCaseSetup<Function>,
-    native: TestCaseSetup<string>,
+    native: TestCaseSetup<string | undefined>,
 }
 
 interface TestCaseSetup<T> {
@@ -21,11 +21,14 @@ interface TestCaseSetup<T> {
     write: string,
 }
 
-function runOrExec(arg: string | Function, cwd: string) {
+function runOrExec(arg: string | Function | undefined, cwd: string) {
     if (typeof arg === 'string') {
         return execPromise(arg, cwd);
+    } else if (typeof arg === 'function') {
+        return Promise.resolve(arg());
+    } else {
+        return Promise.resolve();
     }
-    return Promise.resolve(arg());
 }
 
 export async function run(test: TestCase) {

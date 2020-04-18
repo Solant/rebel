@@ -17,17 +17,17 @@ describe('Simple struct', function () {
         await run({
             cwd: __dirname,
             native: {
-                prepare: 'g++ main.cpp',
-                read: './a.out read',
-                write: './a.out write',
+                prepare: undefined,
+                read: 'npx ts-node source-native.ts read _test-compiled.bin',
+                write: 'npx ts-node source-native.ts write _test-compiled.bin',
             },
             bimo: {
                 prepare() {
-                    const source = compile(read('plain.bimo'), ts, { emitRuntime: true, target: 'ts' });
-                    write('plain-compiled.ts', source.fileContent);
+                    const source = compile(read('data.rebel'), ts, { emitRuntime: true, target: 'ts' });
+                    write('source-rebel-compiled.ts', source.fileContent);
                 },
-                read: 'npx ts-node read.ts read',
-                write: 'npx ts-node read.ts write',
+                read: 'npx ts-node source-rebel.ts read _test-compiled.bin',
+                write: 'npx ts-node source-rebel.ts write _test-compiled.bin',
             }
         })
     }, 30000);
