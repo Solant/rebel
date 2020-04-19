@@ -5,7 +5,6 @@ import {
     BiMoAst,
     NodePosition,
     ParamFieldTypeAstNode,
-    SimpleFieldTypeAstNode
 } from '../parser/ast';
 import { isTypeName } from '../builtInTypes';
 import { assertNever, CompileError } from '../assertions';
@@ -78,11 +77,6 @@ function traverse<T>(nodes: AstNode[], visitors: AstNodeVisitor[], path: AstNode
                 enterNode(node, visitors, currentPath, scope);
                 traverse(node.typeArgs, visitors, currentPath, scope);
                 traverse(node.args, visitors, currentPath, scope);
-                exitNode(node, visitors, currentPath, scope);
-                break;
-            }
-            case AstNodeType.SimpleType: {
-                enterNode(node, visitors, currentPath, scope);
                 exitNode(node, visitors, currentPath, scope);
                 break;
             }
@@ -170,7 +164,7 @@ export function transform(ast: BiMoAst): BaseType[] {
     const fields = new Stack<Field | ComputedField>();
     const types = new Stack<BaseType>();
 
-    function pickBaseType(node: SimpleFieldTypeAstNode | ParamFieldTypeAstNode): BaseType {
+    function pickBaseType(node: ParamFieldTypeAstNode): BaseType {
         const name = node.typeName;
         if (isTypeName(name)) {
             return {

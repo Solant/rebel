@@ -26,15 +26,7 @@ TypeName = [a-zA-Z0-9]+
 
 VarName = [a-zA-Z0-9]+
 
-Type = ParametrizedType / SimpleType
-
-SimpleType = typeName:TypeName {
-	return {
-	    type: 'simpletype',
-	    pos: location().start,
-	    typeName: typeName.join('')
-    };
-}
+Type = ParametrizedType
 
 StringLiteral = '"' text:[a-zA-Z]* '"' {
 	return {
@@ -69,7 +61,7 @@ FieldRef = '#' fieldName:[a-zA-Z0-9]+ {
     };
 }
 
-PossibleTypeArgs = FieldRef / EndiannessLiteral / ParametrizedType / NumberLiteral / SimpleType
+PossibleTypeArgs = FieldRef / EndiannessLiteral / ParametrizedType / NumberLiteral
 
 TypeArg = _ arg:PossibleTypeArgs ','? _ {
 	return arg;
