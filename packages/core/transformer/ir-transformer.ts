@@ -5,7 +5,6 @@ import {
     BiMoAst,
     NodePosition,
     ParamFieldTypeAstNode,
-    SimpleFieldTypeAstNode
 } from '../parser/ast';
 import { isTypeName } from '../builtInTypes';
 import { assertNever, CompileError } from '../assertions';
@@ -77,18 +76,7 @@ function traverse<T>(nodes: AstNode[], visitors: AstNodeVisitor[], path: AstNode
             case AstNodeType.ParametrizedType: {
                 enterNode(node, visitors, currentPath, scope);
                 traverse(node.typeArgs, visitors, currentPath, scope);
-                // FIXME: nested type args
-                traverse(node.args.filter(Boolean), visitors, currentPath, scope);
-                exitNode(node, visitors, currentPath, scope);
-                break;
-            }
-            case AstNodeType.SimpleType: {
-                enterNode(node, visitors, currentPath, scope);
-                exitNode(node, visitors, currentPath, scope);
-                break;
-            }
-            case AstNodeType.FieldRef: {
-                enterNode(node, visitors, currentPath, scope);
+                traverse(node.args, visitors, currentPath, scope);
                 exitNode(node, visitors, currentPath, scope);
                 break;
             }
@@ -171,7 +159,7 @@ export function transform(ast: BiMoAst): BaseType[] {
     const fields = new Stack<Field | ComputedField>();
     const types = new Stack<BaseType>();
 
-    function pickBaseType(node: SimpleFieldTypeAstNode | ParamFieldTypeAstNode): BaseType {
+    function pickBaseType(node: ParamFieldTypeAstNode): BaseType {
         const name = node.typeName;
         if (isTypeName(name)) {
             return {
@@ -235,39 +223,12 @@ export function transform(ast: BiMoAst): BaseType[] {
                     // @ts-ignore
                     type: {},
                     computed: true,
-                    expression: {},
+                    expression: node.expr,
                 });
                 existingFields.push(fields.head());
             },
             exit(node) {
                 fields.pop();
-            },
-        },
-        [AstNodeType.Expression]: {
-            enter(node) {
-                const f = fields.head() as ComputedField;
-                // FIXME: remove f.body null check by moving it to child visitor
-                if (f.expression && Object.keys(f.expression).length === 0) {
-                    f.expression = node;
-                }
-            }
-        },
-        simpletype: {
-            enter(node, path) {
-                switch (path[path.length - 2].type) {
-                    case AstNodeType.Field:
-                    case AstNodeType.ComputedField:
-                        fields.head().type = pickBaseType(node);
-                        break;
-                    case AstNodeType.ParametrizedType: {
-                        const type = types.head();
-                        if (isBuiltInType(type)) {
-                            type.typeArgs.type = pickBaseType(node);
-                        } else {
-                            throw new CompileError('Custom types can\'t have type params', node.pos);
-                        }
-                    }
-                }
             },
         },
         parametrizedtype: {
@@ -294,17 +255,17 @@ export function transform(ast: BiMoAst): BaseType[] {
                     return;
                 }
 
-                // FIXME: nested type args
                 traverse(node.args, [{
                     [AstNodeType.Expression]: {
-                        enter(node) {
-                            const type = types.head();
-                            if (isBuiltInType(type) && type.args.length === 0) {
-                                type.args.push(node);
+                        enter(childNode, childPath) {
+                            if (childPath.length === path.length + 1) {
+                                if (isBuiltInType(t)) {
+                                    t.args.push(childNode);
+                                }
                             }
                         }
                     },
-                }], [...path, node], undefined);
+                }], [...path], undefined);
             },
             exit(node) {
                 const t = types.head();
@@ -340,19 +301,6 @@ export function transform(ast: BiMoAst): BaseType[] {
                     if (type && isBuiltInType(type)) {
                         type.typeArgs.length = node.value;
                     }
-                }
-            }
-        },
-        fieldref: {
-            enter(node) {
-                const type = types.head();
-                if (isBuiltInType(type)) {
-                    const referredField = structs.head().props.find(p => p.name === node.fieldName);
-                    if (referredField === undefined) {
-                        throw new CompileError(`Array size field should be declared before array`, node.pos);
-                    }
-                    referredField.access = 'private';
-                    type.typeArgs.lengthOf = node.fieldName;
                 }
             }
         },

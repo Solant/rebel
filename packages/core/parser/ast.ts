@@ -3,10 +3,8 @@ export enum AstNodeType {
     Structure = 'structure',
     Field = 'field',
     Document = 'document',
-    SimpleType = 'simpletype',
     ParametrizedType = 'parametrizedtype',
     Endianness = 'endianness',
-    FieldRef = 'fieldref',
     Expression = 'Expression',
     BinaryOperator = 'BinaryOperator',
     Variable = 'Var',
@@ -35,25 +33,20 @@ export interface StructureAstNode extends BaseAstNode {
 export interface FieldAstNode extends BaseAstNode {
     type: AstNodeType.Field,
     name: string,
-    fieldType: SimpleFieldTypeAstNode | ParamFieldTypeAstNode,
+    fieldType: ParamFieldTypeAstNode,
 }
 
 export interface ComputedFieldAstNode extends BaseAstNode {
     type: AstNodeType.ComputedField,
     name: string,
-    fieldType: SimpleFieldTypeAstNode | ParamFieldTypeAstNode,
+    fieldType: ParamFieldTypeAstNode,
     expr: Expression.ExpressionNode,
-}
-
-export interface SimpleFieldTypeAstNode extends BaseAstNode {
-    type: AstNodeType.SimpleType,
-    typeName: string,
 }
 
 export interface ParamFieldTypeAstNode extends BaseAstNode {
     type: AstNodeType.ParametrizedType,
     typeName: string,
-    typeArgs: Array<ParamFieldTypeAstNode | EndiannessLiteralAstNode | NumberLiteralAstNode | FieldRefAstNode>,
+    typeArgs: Array<ParamFieldTypeAstNode | EndiannessLiteralAstNode | NumberLiteralAstNode>,
     args: Expression.ExpressionNode[],
 }
 
@@ -72,20 +65,13 @@ export interface EndiannessLiteralAstNode extends BaseAstNode {
     value: string,
 }
 
-export interface FieldRefAstNode extends BaseAstNode {
-    type: AstNodeType.FieldRef,
-    fieldName: string,
-}
-
 export type AstNode = StructureAstNode
     | FieldAstNode
     | ComputedFieldAstNode
     | DocumentAstNode
-    | SimpleFieldTypeAstNode
     | ParamFieldTypeAstNode
     | NumberLiteralAstNode
     | EndiannessLiteralAstNode
-    | FieldRefAstNode
     | Expression.ExpressionNode
     | Expression.BaseExpression;
 
