@@ -1,9 +1,12 @@
 import { resolve } from 'path';
 import { readFileSync, writeFileSync } from 'fs';
-import { read, write, Plain } from './plain-compiled';
+import { read, write, Plain } from './source-rebel-compiled';
 
-if (process.argv[2] === 'read') {
-    const buffer = readFileSync(resolve(__dirname, 'test.bin'));
+const mode = process.argv[2];
+const file = process.argv[3];
+
+if (mode === 'read') {
+    const buffer = readFileSync(resolve(__dirname, file));
     const data = read(buffer);
     console.log(data.num1);
     console.log(data.child.num2);
@@ -11,7 +14,7 @@ if (process.argv[2] === 'read') {
     console.log(data.child.num4);
 }
 
-if (process.argv[2] === 'write') {
+if (mode === 'write') {
     const buffer = Buffer.alloc(20);
     const value: Plain = {
         num1: -24,
@@ -20,8 +23,7 @@ if (process.argv[2] === 'write') {
             num3: -2147484,
             num4: 2147484,
         },
-
     };
     write(buffer, value);
-    writeFileSync('test.bin', buffer);
+    writeFileSync(file, buffer);
 }
