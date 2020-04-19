@@ -75,16 +75,20 @@ TypeArg = _ arg:PossibleTypeArgs ','? _ {
 	return arg;
 }
 
+TypeArgs = '<' typeArgs:TypeArg+ '>' {
+    return typeArgs;
+}
+
 ExpressionArg = _ arg:Expression ','? _ {
     return arg;
 }
 
-ParametrizedType = typeName:TypeName '<'? typeArgs:TypeArg* '>'? '('? args:ExpressionArg* ')'? {
+ParametrizedType = typeName:TypeName typeArgs:TypeArgs? '('? args:ExpressionArg* ')'? {
 	return {
 	    type: 'parametrizedtype',
 	    pos: location().start,
 	    typeName: typeName.join(''),
-	    typeArgs,
+	    typeArgs: typeArgs ? typeArgs : [],
 	    args,
     }
 }

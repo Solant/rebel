@@ -77,8 +77,7 @@ function traverse<T>(nodes: AstNode[], visitors: AstNodeVisitor[], path: AstNode
             case AstNodeType.ParametrizedType: {
                 enterNode(node, visitors, currentPath, scope);
                 traverse(node.typeArgs, visitors, currentPath, scope);
-                // FIXME: nested type args
-                traverse(node.args.filter(Boolean), visitors, currentPath, scope);
+                traverse(node.args, visitors, currentPath, scope);
                 exitNode(node, visitors, currentPath, scope);
                 break;
             }
@@ -276,17 +275,17 @@ export function transform(ast: BiMoAst): BaseType[] {
                     return;
                 }
 
-                // FIXME: nested type args
                 traverse(node.args, [{
                     [AstNodeType.Expression]: {
-                        enter(node) {
-                            const type = types.head();
-                            if (isBuiltInType(type) && type.args.length === 0) {
-                                type.args.push(node);
+                        enter(childNode, childPath) {
+                            if (childPath.length === path.length + 1) {
+                                if (isBuiltInType(t)) {
+                                    t.args.push(childNode);
+                                }
                             }
                         }
                     },
-                }], [...path, node], undefined);
+                }], [...path], undefined);
             },
             exit(node) {
                 const t = types.head();
