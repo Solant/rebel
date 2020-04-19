@@ -1,6 +1,6 @@
 import { run } from '../../../../tests/utils';
 import { compile } from '@rebel-struct/core';
-import ts from '../../index';
+import ts from '../../src';
 import { readFileSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
 
@@ -12,22 +12,22 @@ function write(name: string, content: string) {
     return writeFileSync(resolve(__dirname, name), content, { encoding: 'utf-8' });
 }
 
-describe('Nested struct', function () {
+describe('Simple struct', function () {
     it('should read and write properly', async () => {
         await run({
             cwd: __dirname,
             native: {
-                prepare: 'g++ main.cpp',
-                read: './a.out read',
-                write: './a.out write',
+                prepare: undefined,
+                read: 'npx ts-node source-native.ts read _test-compiled.bin',
+                write: 'npx ts-node source-native.ts write _test-compiled.bin',
             },
             bimo: {
                 prepare() {
-                    const source = compile(read('plain.bimo'), ts, { emitRuntime: true, target: 'ts' });
-                    write('plain-compiled.ts', source.fileContent);
+                    const source = compile(read('data.rebel'), ts, { emitRuntime: true, target: 'ts' });
+                    write('source-rebel-compiled.ts', source.fileContent);
                 },
-                read: 'npx ts-node read.ts read',
-                write: 'npx ts-node read.ts write',
+                read: 'npx ts-node source-rebel.ts read _test-compiled.bin',
+                write: 'npx ts-node source-rebel.ts write _test-compiled.bin',
             }
         })
     }, 30000);

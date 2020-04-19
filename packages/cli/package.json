@@ -6,7 +6,7 @@
   "main": "lib/index.js",
   "scripts": {
     "build": "tsc",
-    "clean": "rm -rf lib"
+    "clean": "rimraf lib"
   },
   "bin": {
     "bimo": "lib/index.js"
@@ -32,6 +32,7 @@
     "@rebel-struct/core": "^0.2.2",
     "@types/node": "^12.7.2",
     "@types/yargs": "^15.0.1",
+    "rimraf": "^3.0.2",
     "typescript": "^3.5.3"
   },
   "publishConfig": {

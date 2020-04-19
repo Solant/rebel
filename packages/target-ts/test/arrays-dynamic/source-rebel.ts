@@ -1,9 +1,9 @@
-import { ArrayStruct, read, write } from './array-compiled';
+import { ArrayStruct, read, write } from './source-rebel-compiled';
 import { readFileSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
 
-const file = process.argv[2];
-const mode = process.argv[3];
+const mode = process.argv[2];
+const file = process.argv[3];
 
 if (mode == 'read') {
     const buffer = readFileSync(resolve(__dirname, file));
@@ -13,13 +13,13 @@ if (mode == 'read') {
 }
 
 if (mode == 'write') {
-    const buffer = Buffer.alloc(10 * 4 + 4);
+    const buffer = Buffer.alloc(1000);
     const data: ArrayStruct = {
-        size: 10,
         data: [],
     };
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < parseInt(process.argv[4]); i++) {
         data.data.push(+(Math.random() * 100000).toFixed(0));
     }
-    writeFileSync(file, Buffer.from(write(buffer, data)));
+    write(buffer, data);
+    writeFileSync(file, buffer);
 }

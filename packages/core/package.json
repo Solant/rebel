@@ -6,7 +6,7 @@
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "scripts": {
-    "clean": "rm -rf lib",
+    "clean": "rimraf lib",
     "build": "npm run generate-parser && tsc",
     "test": "npm run generate-parser && jest",
     "generate-parser": "pegjs --plugin ./node_modules/ts-pegjs -o parser/document.ts parser/document.pegjs"
@@ -29,6 +29,7 @@
   "devDependencies": {
     "@types/mustache": "^0.8.32",
     "pegjs": "^0.10.0",
+    "rimraf": "^3.0.2",
     "ts-jest": "^24.0.2",
     "ts-pegjs": "^0.2.6",
     "typescript": "^3.5.3"
