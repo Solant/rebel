@@ -252,24 +252,6 @@ export function transform(ast: BiMoAst): BaseType[] {
                 }
             }
         },
-        simpletype: {
-            enter(node, path) {
-                switch (path[path.length - 2].type) {
-                    case AstNodeType.Field:
-                    case AstNodeType.ComputedField:
-                        fields.head().type = pickBaseType(node);
-                        break;
-                    case AstNodeType.ParametrizedType: {
-                        const type = types.head();
-                        if (isBuiltInType(type)) {
-                            type.typeArgs.type = pickBaseType(node);
-                        } else {
-                            throw new CompileError('Custom types can\'t have type params', node.pos);
-                        }
-                    }
-                }
-            },
-        },
         parametrizedtype: {
             enter(node, path) {
                 const t = pickBaseType(node);
