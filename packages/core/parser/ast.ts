@@ -5,7 +5,6 @@ export enum AstNodeType {
     Document = 'document',
     ParametrizedType = 'parametrizedtype',
     Endianness = 'endianness',
-    FieldRef = 'fieldref',
     Expression = 'Expression',
     BinaryOperator = 'BinaryOperator',
     Variable = 'Var',
@@ -47,7 +46,7 @@ export interface ComputedFieldAstNode extends BaseAstNode {
 export interface ParamFieldTypeAstNode extends BaseAstNode {
     type: AstNodeType.ParametrizedType,
     typeName: string,
-    typeArgs: Array<ParamFieldTypeAstNode | EndiannessLiteralAstNode | NumberLiteralAstNode | FieldRefAstNode>,
+    typeArgs: Array<ParamFieldTypeAstNode | EndiannessLiteralAstNode | NumberLiteralAstNode>,
     args: Expression.ExpressionNode[],
 }
 
@@ -66,11 +65,6 @@ export interface EndiannessLiteralAstNode extends BaseAstNode {
     value: string,
 }
 
-export interface FieldRefAstNode extends BaseAstNode {
-    type: AstNodeType.FieldRef,
-    fieldName: string,
-}
-
 export type AstNode = StructureAstNode
     | FieldAstNode
     | ComputedFieldAstNode
@@ -78,7 +72,6 @@ export type AstNode = StructureAstNode
     | ParamFieldTypeAstNode
     | NumberLiteralAstNode
     | EndiannessLiteralAstNode
-    | FieldRefAstNode
     | Expression.ExpressionNode
     | Expression.BaseExpression;
 

@@ -23,7 +23,7 @@ describe('Array fields ', () => {
         expect(() => transform(parse(`
         default struct Test {
             size: i32;
-            data: array<i32<le>, #differentField>;
+            data: array<i32<le>>();
         }
         `))).toThrow(CompileError);
     });
@@ -32,7 +32,7 @@ describe('Array fields ', () => {
         expect(() => transform(parse(`
         default struct Test {
             size: i32;
-            data: array<i32<le>, #size, le>;
+            data: array<i32<le>, le>(size);
         }
         `))).toThrow(CompileError);
     });

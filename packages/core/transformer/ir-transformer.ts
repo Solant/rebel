@@ -80,11 +80,6 @@ function traverse<T>(nodes: AstNode[], visitors: AstNodeVisitor[], path: AstNode
                 exitNode(node, visitors, currentPath, scope);
                 break;
             }
-            case AstNodeType.FieldRef: {
-                enterNode(node, visitors, currentPath, scope);
-                exitNode(node, visitors, currentPath, scope);
-                break;
-            }
             case AstNodeType.Number: {
                 enterNode(node, visitors, currentPath, scope);
                 exitNode(node, visitors, currentPath, scope);
@@ -306,19 +301,6 @@ export function transform(ast: BiMoAst): BaseType[] {
                     if (type && isBuiltInType(type)) {
                         type.typeArgs.length = node.value;
                     }
-                }
-            }
-        },
-        fieldref: {
-            enter(node) {
-                const type = types.head();
-                if (isBuiltInType(type)) {
-                    const referredField = structs.head().props.find(p => p.name === node.fieldName);
-                    if (referredField === undefined) {
-                        throw new CompileError(`Array size field should be declared before array`, node.pos);
-                    }
-                    referredField.access = 'private';
-                    type.typeArgs.lengthOf = node.fieldName;
                 }
             }
         },
