@@ -228,22 +228,13 @@ export function transform(ast: BiMoAst): BaseType[] {
                     // @ts-ignore
                     type: {},
                     computed: true,
-                    expression: {},
+                    expression: node.expr,
                 });
                 existingFields.push(fields.head());
             },
             exit(node) {
                 fields.pop();
             },
-        },
-        [AstNodeType.Expression]: {
-            enter(node) {
-                const f = fields.head() as ComputedField;
-                // FIXME: remove f.body null check by moving it to child visitor
-                if (f.expression && Object.keys(f.expression).length === 0) {
-                    f.expression = node;
-                }
-            }
         },
         parametrizedtype: {
             enter(node, path) {
