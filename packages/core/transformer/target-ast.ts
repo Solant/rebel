@@ -74,9 +74,6 @@ export interface WriteBuiltInType {
     id: string,
     type: BuiltInType,
     expression?: ExpressionNode
-    computed: {
-        lengthOf?: string,
-    },
 }
 
 export interface WriteCustomType {

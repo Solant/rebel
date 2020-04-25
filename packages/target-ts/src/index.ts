@@ -1,4 +1,4 @@
-import { targetAst, irAst, generatorModule, parserAst } from '@rebel-struct/core';
+import { targetAst, irAst, generatorModule, parserAst, CodeGenerationError } from '@rebel-struct/core';
 import { TypeName } from '@rebel-struct/core/builtInTypes';
 import injectedCode from './runtime';
 import { assertNever } from '@rebel-struct/core/lib/assertions';
@@ -129,9 +129,7 @@ export const ts: generatorModule.GeneratorModule = {
         },
         WriteBuiltInType: {
             enter(node, path, scope) {
-                if (node.computed.lengthOf) {
-                    scope.result += `${'\t'.repeat(scope.level)}stream.write${generatorModule.capitalize(node.type.name)}(struct.${node.computed.lengthOf}.length);\n`;
-                } else if (node.expression) {
+                if (node.expression) {
                     const exprToString = (node: parserAst.Expression.BaseExpression): string => {
                         switch(node.type) {
                             case parserAst.AstNodeType.Number:
@@ -145,6 +143,7 @@ export const ts: generatorModule.GeneratorModule = {
                                 if (node.name === 'lengthof') {
                                     return `${body}.length`;
                                 }
+                                throw new CodeGenerationError(`Unsupported function "${node.name}"`);
                             }
                             default:
                                 return '';
@@ -188,6 +187,7 @@ export const ts: generatorModule.GeneratorModule = {
                                 if (node.name === 'lengthof') {
                                     return `${body}.length`;
                                 }
+                                throw new CodeGenerationError(`Unsupported function "${node.name}"`);
                             }
                             default:
                                 return '';
@@ -208,11 +208,6 @@ export const ts: generatorModule.GeneratorModule = {
         WriteArrayType: {
             enter(node, path, scope) {
                 let expr: string = '';
-                if (node.typeArg.length) {
-                    expr = `${node.typeArg.length}`;
-                } else if (node.typeArg.lengthOf) {
-                    expr = `struct.${node.id}.length`;
-                }
 
                 if (node.expression) {
                     const exprToString = (node: parserAst.Expression.BaseExpression): string => {
@@ -228,6 +223,7 @@ export const ts: generatorModule.GeneratorModule = {
                                 if (node.name === 'lengthof') {
                                     return `${body}.length`;
                                 }
+                                throw new CodeGenerationError(`Unsupported function "${node.name}"`);
                             }
                             default:
                                 return '';
