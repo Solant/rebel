@@ -38,8 +38,6 @@ export type BaseType = CustomType | BuiltInType;
 
 export interface TypeArgument {
     isLe?: boolean,
-    lengthOf?: string,
-    length?: number,
     type?: BaseType,
 }
 

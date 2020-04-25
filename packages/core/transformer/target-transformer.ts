@@ -47,7 +47,6 @@ function getWriteExpr(id: string, type: BaseType, expr?: Expression.ExpressionNo
                 id,
                 type,
                 expression: expr,
-                computed: {},
             };
         case TypeTag.Custom:
             return {
@@ -65,23 +64,6 @@ function getWriteFunctionDeclaration(type: CustomType): TargetAst.FunctionDeclar
         }
         return getWriteExpr(p.name, p.type);
     });
-
-    function isWriteBuiltInType(n: TargetAst.Node): n is TargetAst.WriteBuiltInType {
-        return n.tag === ExpressionTag.WriteBuiltInType;
-    }
-
-    const computedProps = type.props
-        .filter(p => p.type.tag === TypeTag.BuiltIn && p.type.typeArgs.lengthOf);
-
-    props
-        .filter(isWriteBuiltInType)
-        .forEach(t => {
-            // @ts-ignore
-            const prop = computedProps.find(p => p.type.typeArgs!.lengthOf === t.id);
-            if (prop) {
-                t.computed.lengthOf = prop.name;
-            }
-        });
 
     return {
         tag: ExpressionTag.FunctionDeclaration,

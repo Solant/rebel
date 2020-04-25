@@ -274,8 +274,7 @@ export function transform(ast: BiMoAst): BaseType[] {
                     if (typeArgs.type === undefined) {
                         throw new CompileError(`Arrays expect child type argument`, node.pos);
                     }
-                    // TODO: remove size and lengthOf
-                    if (!typeArgs.length && typeArgs.lengthOf === undefined && t.args.length === 0) {
+                    if (t.args.length === 0) {
                         throw new CompileError(`Arrays expect size type argument`, node.pos);
                     }
                 }
@@ -290,17 +289,6 @@ export function transform(ast: BiMoAst): BaseType[] {
                         throw new CompileError(`Arrays don't have endianness param`, node.pos);
                     }
                     type.typeArgs.isLe = node.value === 'le';
-                }
-            }
-        },
-        Number: {
-            enter(node, path) {
-                const type = types.head();
-
-                if(!pathFinder<ParamFieldTypeAstNode, AstNode>(path, AstNodeType.ParametrizedType)) {
-                    if (type && isBuiltInType(type)) {
-                        type.typeArgs.length = node.value;
-                    }
                 }
             }
         },
