@@ -20,7 +20,7 @@ test.skip('big-endian numbers', async () => {
             read: 'npx ts-node source-native.ts read _test-compiled.bin',
             write: 'npx ts-node source-native.ts write _test-compiled.bin',
         },
-        bimo: {
+        rebel: {
             prepare() {
                 const source = compile(read('data.rebel'), ts, { emitRuntime: true, target: 'ts' });
                 write('source-rebel-compiled.ts', source.fileContent);

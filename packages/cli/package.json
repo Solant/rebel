@@ -9,7 +9,7 @@
     "clean": "rimraf lib"
   },
   "bin": {
-    "bimo": "lib/index.js"
+    "rebel": "lib/index.js"
   },
   "files": [
     "lib/"
@@ -18,10 +18,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git://github.com/Solant/bimo"
+    "url": "git://github.com/Solant/rebel"
   },
-  "homepage": "https://github.com/Solant/bimo",
-  "bugs": "https://github.com/Solant/bimo/issues",
+  "homepage": "https://github.com/Solant/rebel",
+  "bugs": "https://github.com/Solant/rebel/issues",
   "dependencies": {
     "yargs": "^14.0.0"
   },

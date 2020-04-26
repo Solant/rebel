@@ -52,7 +52,7 @@ export interface FunctionSignature {
 export interface FunctionParameter {
     tag: ExpressionTag.FunctionParameter,
     id: string,
-    type: BaseType | 'BimoStream',
+    type: BaseType | 'RebelStream',
 }
 
 type BaseFunction = FunctionDeclaration | MainReadFunctionDeclaration | MainWriteFunctionDeclaration;

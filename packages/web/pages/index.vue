@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div class="text-3xl">BiMo online version</div>
+        <div class="text-3xl">Rebel Struct online version</div>
         <div class="flex">
             <div class="flex-1">
                 <client-only>

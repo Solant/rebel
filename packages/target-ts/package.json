@@ -16,10 +16,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git://github.com/Solant/bimo"
+    "url": "git://github.com/Solant/rebel"
   },
-  "homepage": "https://github.com/Solant/bimo",
-  "bugs": "https://github.com/Solant/bimo/issues",
+  "homepage": "https://github.com/Solant/rebel",
+  "bugs": "https://github.com/Solant/rebel/issues",
   "peerDependencies": {
     "@rebel-struct/core": "^0.2.0"
   },

@@ -101,7 +101,7 @@ export const ts: generatorModule.GeneratorModule = {
         },
         FunctionParameter: {
             enter(node, path, scope) {
-                if (node.type === 'BimoStream') {
+                if (node.type === 'RebelStream') {
                     scope.result += `${node.id}: RebelStream`;
                 } else {
                     scope.result += `${node.id}: ${typeTransformer(node.type)}`;

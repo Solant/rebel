@@ -73,7 +73,7 @@ function getWriteFunctionDeclaration(type: CustomType): TargetAst.FunctionDeclar
             tag: ExpressionTag.FunctionSignature,
             params: [
                 { tag: ExpressionTag.FunctionParameter, id: 'struct', type },
-                { tag: ExpressionTag.FunctionParameter, id: 'stream', type: 'BimoStream' },
+                { tag: ExpressionTag.FunctionParameter, id: 'stream', type: 'RebelStream' },
             ],
         },
         body: [...props],
@@ -128,7 +128,7 @@ function getReadFunctionDeclaration(type: CustomType): TargetAst.FunctionDeclara
         type: `${type.name}`,
         signature: {
             tag: ExpressionTag.FunctionSignature,
-            params: [{ tag: ExpressionTag.FunctionParameter, id: 'stream', type: 'BimoStream' }],
+            params: [{ tag: ExpressionTag.FunctionParameter, id: 'stream', type: 'RebelStream' }],
         },
         body: [...props, createType, ret],
     };

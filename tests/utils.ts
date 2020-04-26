@@ -11,7 +11,7 @@ function execPromise(command: string, cwd: string): Promise<string> {
 
 interface TestCase {
     cwd: string,
-    bimo: TestCaseSetup<Function>,
+    rebel: TestCaseSetup<Function>,
     native: TestCaseSetup<string | undefined>,
 }
 
@@ -33,7 +33,7 @@ function runOrExec(arg: string | Function | undefined, cwd: string) {
 
 export async function run(test: TestCase) {
     await Promise.all([
-        runOrExec(test.bimo.prepare, test.cwd),
+        runOrExec(test.rebel.prepare, test.cwd),
         runOrExec(test.native.prepare, test.cwd),
     ]);
 
@@ -41,10 +41,10 @@ export async function run(test: TestCase) {
     await execPromise(test.native.write, test.cwd);
 
     // check reads
-    expect(await execPromise(test.bimo.read, test.cwd)).toEqual(await execPromise(test.native.read, test.cwd));
+    expect(await execPromise(test.rebel.read, test.cwd)).toEqual(await execPromise(test.native.read, test.cwd));
 
-    await execPromise(test.bimo.write, test.cwd);
+    await execPromise(test.rebel.write, test.cwd);
 
     // check writes
-    expect(await execPromise(test.bimo.read, test.cwd)).toEqual(await execPromise(test.native.read, test.cwd));
+    expect(await execPromise(test.rebel.read, test.cwd)).toEqual(await execPromise(test.native.read, test.cwd));
 }
