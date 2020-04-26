@@ -7,7 +7,7 @@
 
 It produces minimal output with no external dependencies, so you can use compiled sources with no hassle against build systems (I'm looking at you, CMake)
 
-[Online demo (fully-fledged browser version)](https://bimo-online.netlify.com/)
+[Online demo (fully-fledged browser version)](https://rebel-struct.netlify.app/)
 
 ## Supported languages
 Core compiler is implemented with TypeScript, however, it can generate sources for any other language.
@@ -37,7 +37,7 @@ npm i @rebel-struct/target-ts
 ```
 3. Nah, I just need some sources and thats it
 
-Compile sources with [online version](https://bimo-online.netlify.com/) and copy it to your project
+Compile sources with [online version](https://rebel-struct.netlify.app/) and copy it to your project
 
 
 ## File structure description
