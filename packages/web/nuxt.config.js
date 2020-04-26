@@ -5,10 +5,10 @@ export default {
     ],
     mode: 'spa',
     head: {
-        titleTemplate: 'BiMo compiler demo',
+        titleTemplate: 'Rebel compiler demo',
         meta: [
             { charset: 'utf-8' },
-            { hid: 'description', name: 'description', content: 'BiMo online demo' }
+            { hid: 'description', name: 'description', content: 'Rebel online demo' }
         ]
     },
     plugins: [

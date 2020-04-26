@@ -1,5 +1,5 @@
 {
-  "name": "bimo",
+  "name": "rebel",
   "version": "0.2.0",
   "description": "Binary format declaration language and a compiler",
   "scripts": {

@@ -2,7 +2,7 @@ import { BaseType, ComputedField, CustomType, Field, isBuiltInArray, isBuiltInTy
 import {
     AstNode,
     AstNodeType,
-    BiMoAst,
+    RebelAst,
     NodePosition,
     ParamFieldTypeAstNode,
 } from '../parser/ast';
@@ -108,7 +108,7 @@ function traverse<T>(nodes: AstNode[], visitors: AstNodeVisitor[], path: AstNode
     });
 }
 
-export function transform(ast: BiMoAst): BaseType[] {
+export function transform(ast: RebelAst): BaseType[] {
     const output: BaseType[] = [];
     const visitors: AstNodeVisitor[] = [];
 

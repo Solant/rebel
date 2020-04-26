@@ -78,7 +78,7 @@ readMainStruct(...) {
 ```
 
 ### Simple Types
-| BiMo type | C++ type|
+| Rebel type | C++ type|
 |-----------|--------|
 | i8        | int8_t |
 | i16       | int16_t|

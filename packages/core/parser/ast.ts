@@ -116,4 +116,4 @@ export namespace Expression {
     }
 }
 
-export type BiMoAst = DocumentAstNode;
+export type RebelAst = DocumentAstNode;

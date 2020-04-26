@@ -9,7 +9,7 @@
     "clean": "rimraf lib"
   },
   "bin": {
-    "bimo": "lib/index.js"
+    "rebel": "lib/index.js"
   },
   "files": [
     "lib/"
