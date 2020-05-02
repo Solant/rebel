@@ -1,6 +1,6 @@
 import { targetAst, irAst, generatorModule, parserAst, CodeGenerationError } from '@rebel-struct/core';
 import { TypeName } from '@rebel-struct/core/builtInTypes';
-import injectedCode from './runtime';
+import * as injectedCode from './runtime';
 import { assertNever } from '@rebel-struct/core/lib/assertions';
 
 function typeTransformer(type: irAst.BaseType): string {
@@ -54,7 +54,7 @@ const exprToString = (node: parserAst.Expression.BaseExpression): string => {
     }
 };
 
-export const ts: generatorModule.GeneratorModule = {
+const ts: generatorModule.GeneratorModule = {
     fileExtension: 'ts',
     language: 'TypeScript',
     visitor: [{
@@ -258,7 +258,8 @@ export const ts: generatorModule.GeneratorModule = {
             },
         },
     }],
-    injects: () => injectedCode,
+    // @ts-ignore
+    injects: () => injectedCode.default,
 };
 
 export default ts;

@@ -1,6 +1,4 @@
-export default `
-
-class RebelStream {
+export class RebelStream {
     pos: number = 0;
     arrayBuffer: ArrayBuffer;
     dataView: DataView;
@@ -109,4 +107,3 @@ class RebelStream {
         this.pos += bytes;
     }
 }
-`;

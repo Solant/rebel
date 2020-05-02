@@ -1,6 +1,6 @@
 import { run } from '../../../../tests/utils';
 import { compile } from '@rebel-struct/core';
-import ts from '../../src';
+import ts from '../../lib';
 import { readFileSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
 
