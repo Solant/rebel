@@ -29,4 +29,4 @@ test.skip('big-endian numbers', async () => {
             write: 'npx ts-node source-rebel.ts write _test-compiled.bin',
         },
     })
-}, 30000);
+}, 90000);
