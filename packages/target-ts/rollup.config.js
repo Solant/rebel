@@ -5,7 +5,9 @@ export default {
     input: 'src/index.ts',
     output: {
         dir: 'lib',
-        format: 'cjs'
+        format: 'cjs',
+        exports: 'named',
+        interop: true,
     },
     external: ['@rebel-struct/core', '@rebel-struct/core/lib/assertions'],
     plugins: [
