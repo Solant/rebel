@@ -1,17 +1,22 @@
 export class RebelStream {
-    pos: number = 0;
-    arrayBuffer: ArrayBuffer;
-    dataView: DataView;
+    private pos: number = 0;
+    private arrayBuffer: ArrayBuffer;
+    private dataView: DataView;
 
     private static isNodeBuffer(b: any): b is Buffer {
         return b.buffer !== undefined;
     }
 
-    constructor(buffer: ArrayBuffer | Buffer) {
-        if (RebelStream.isNodeBuffer(buffer)) {
-            this.arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.length);
+    constructor();
+    constructor(arg: number);
+    constructor(arg: ArrayBuffer | Buffer);
+    constructor(arg?: any) {
+        if (!arg || typeof arg === 'number') {
+            this.arrayBuffer = new ArrayBuffer(arg || 4096);
+        } else if (RebelStream.isNodeBuffer(arg)) {
+            this.arrayBuffer = arg.buffer.slice(arg.byteOffset, arg.byteOffset + arg.length);
         } else {
-            this.arrayBuffer = buffer;
+            this.arrayBuffer = arg;
         }
 
         this.dataView = new DataView(this.arrayBuffer);
@@ -97,9 +102,23 @@ export class RebelStream {
         this.write(4, () => this.dataView.setInt32(this.pos, value, endianness === 'le'));
     }
 
+    result(): ArrayBuffer {
+        return this.arrayBuffer.slice(0, this.pos);
+    }
+
+    private realloc(size: number): void {
+        const sourceView = new Uint8Array(this.arrayBuffer);
+        const destView = new Uint8Array(new ArrayBuffer(size));
+
+        destView.set(sourceView);
+
+        this.arrayBuffer = destView.buffer;
+        this.dataView = new DataView(this.arrayBuffer);
+    }
+
     private write(bytes: number, cb: () => void): void {
         if (this.pos + bytes > this.arrayBuffer.byteLength) {
-            throw new Error('Resize is not implemented');
+            this.realloc(this.pos + bytes + 4096);
         }
 
         cb();
