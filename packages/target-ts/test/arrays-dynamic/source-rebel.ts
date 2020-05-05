@@ -13,13 +13,11 @@ if (mode == 'read') {
 }
 
 if (mode == 'write') {
-    const buffer = Buffer.alloc(1000);
     const data: ArrayStruct = {
         data: [],
     };
     for (let i = 0; i < parseInt(process.argv[4]); i++) {
         data.data.push(+(Math.random() * 100000).toFixed(0));
     }
-    write(buffer, data);
-    writeFileSync(file, buffer);
+    writeFileSync(file, Buffer.from(write(data)));
 }

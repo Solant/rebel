@@ -15,7 +15,6 @@ if (mode === 'read') {
 }
 
 if (mode === 'write') {
-    const buffer = Buffer.alloc(20);
     const value: Plain = {
         num1: -24,
         child: {
@@ -24,6 +23,5 @@ if (mode === 'write') {
             num4: 2147484,
         },
     };
-    write(buffer, value);
-    writeFileSync(file, buffer);
+    writeFileSync(file, Buffer.from(write(value)));
 }

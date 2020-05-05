@@ -250,10 +250,10 @@ const ts: generatorModule.GeneratorModule = {
         },
         MainWriteFunctionDeclaration: {
             enter(node, path, scope) {
-                scope.result += `export function write(buffer: Buffer, source: ${node.type.name}): ArrayBuffer {\n`;
-                scope.result += `    const stream: RebelStream = new RebelStream(buffer);\n`;
+                scope.result += `export function write(source: ${node.type.name}): ArrayBuffer {\n`;
+                scope.result += `    const stream: RebelStream = new RebelStream();\n`;
                 scope.result += `    write${node.type.name}(source, stream);\n`;
-                scope.result += `    return stream.arrayBuffer;\n`;
+                scope.result += `    return stream.result();\n`;
                 scope.result += `}\n`;
             },
         },

@@ -12,7 +12,7 @@ function write(name: string, content: string) {
     return writeFileSync(resolve(__dirname, name), content, { encoding: 'utf-8' });
 }
 
-describe('Simple struct', function () {
+describe('little-endian numbers', function () {
     it('should read and write properly', async () => {
         await run({
             cwd: __dirname,
