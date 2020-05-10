@@ -9,6 +9,7 @@ import {
 import { isTypeName } from '../builtInTypes';
 import { assertNever, CompileError } from '../assertions';
 import { enterNode, exitNode, GenericVisitor } from '../visitor';
+import { checkTypes } from '../typeArgSpecs';
 
 type AstNodeVisitor = GenericVisitor<AstNodeType, AstNode, undefined, any>;
 
@@ -261,6 +262,7 @@ export function transform(ast: RebelAst): BaseType[] {
                             if (childPath.length === path.length + 1) {
                                 if (isBuiltInType(t)) {
                                     t.args.push(childNode);
+                                    checkTypes(t, node.pos);
                                 }
                             }
                         }
