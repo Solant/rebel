@@ -2,7 +2,7 @@
 node_modules/
 coverage/
 
-packages/core/parser/document.ts
+packages/core/src/parser/document.ts
 
 lerna-debug.log
 

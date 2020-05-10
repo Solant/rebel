@@ -1,5 +1,5 @@
 import { targetAst, irAst, generatorModule, parserAst, CodeGenerationError } from '@rebel-struct/core';
-import { TypeName } from '@rebel-struct/core/builtInTypes';
+import { TypeName } from '@rebel-struct/core/lib/builtInTypes';
 import * as injectedCode from './runtime';
 import { assertNever } from '@rebel-struct/core/lib/assertions';
 
