@@ -262,12 +262,14 @@ export function transform(ast: RebelAst): BaseType[] {
                             if (childPath.length === path.length + 1) {
                                 if (isBuiltInType(t)) {
                                     t.args.push(childNode);
-                                    checkTypes(t, node.pos);
                                 }
                             }
                         }
                     },
                 }], [...path], undefined);
+                if (isBuiltInType(t)) {
+                    checkTypes(t, node.pos);
+                }
             },
             exit(node) {
                 const t = types.head();
