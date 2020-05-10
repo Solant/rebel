@@ -12,10 +12,8 @@ if (mode === 'read') {
 }
 
 if (mode === 'write') {
-    const buffer = Buffer.alloc(20);
     const value: MyString = {
         data: 'helloworld',
     };
-    write(buffer, value);
-    writeFileSync(file, buffer);
+    writeFileSync(file, Buffer.from(write(value)));
 }

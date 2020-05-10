@@ -1,6 +1,6 @@
 import { run } from '../../../../tests/utils';
 import { compile } from '@rebel-struct/core';
-import ts from '../../src';
+import ts from '../../lib';
 import { readFileSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
 
@@ -29,4 +29,4 @@ test.skip('big-endian numbers', async () => {
             write: 'npx ts-node source-rebel.ts write _test-compiled.bin',
         },
     })
-}, 30000);
+}, 90000);
