@@ -26,12 +26,12 @@
   "devDependencies": {
     "@rebel-struct/core": "^0.2.2",
     "@rollup/plugin-typescript": "^4.1.1",
-    "@types/node": "^12.7.2",
+    "@types/node": "^12.12.38",
     "python-struct": "^1.1.2",
     "rimraf": "^3.0.2",
-    "rollup": "^2.7.2",
+    "rollup": "^2.9.0",
     "rollup-plugin-string": "^3.0.0",
-    "typescript": "^3.5.3"
+    "typescript": "^3.8.3"
   },
   "dependencies": {},
   "publishConfig": {
