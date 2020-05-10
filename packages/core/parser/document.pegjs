@@ -28,7 +28,7 @@ VarName = [a-zA-Z0-9]+
 
 Type = ParametrizedType
 
-StringLiteral = '"' text:[a-zA-Z]* '"' {
+StringLiteral = '"' text:[a-zA-Z0-9\-]* '"' {
 	return {
 	    type: 'String',
 	    pos: location().start,
