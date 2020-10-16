@@ -41,9 +41,8 @@ export function checkTypes(type: BuiltInType, pos: NodePosition) {
     const typeChecker = typeArgs[type.name];
     if (typeChecker) {
         const result = typeChecker(type.args);
-        if (result.status) {
-            return;
-        } else {
+        // === false required for CI typecheck to pass
+        if (result.status === false) {
             throw new CompileError(result.message, result.pos || pos);
         }
     }
