@@ -1,9 +1,9 @@
-import { parse } from '../../parser/document';
-import * as Ast from '../../parser/ast';
-import { transform as transformIR } from '../../transformer/ir-transformer';
-import { transform as transformTarget } from '../../transformer/target-transformer';
-import { ComputedField, CustomType } from '../../transformer/ir-ast';
-import { Expression } from '../../parser/ast';
+import { parse } from '../../src/parser/document';
+import * as Ast from '../../src/parser/ast';
+import { transform as transformIR } from '../../src/transformer/ir-transformer';
+import { transform as transformTarget } from '../../src/transformer/target-transformer';
+import { ComputedField, CustomType } from '../../src/transformer/ir-ast';
+import { Expression } from '../../src/parser/ast';
 import BinaryOperator = Expression.BinaryOperator;
 
 describe('Computed properties', function () {

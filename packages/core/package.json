@@ -9,7 +9,7 @@
     "clean": "rimraf lib",
     "build": "npm run generate-parser && tsc",
     "test": "npm run generate-parser && jest",
-    "generate-parser": "pegjs --plugin ./node_modules/ts-pegjs -o parser/document.ts parser/document.pegjs"
+    "generate-parser": "pegjs --plugin ./node_modules/ts-pegjs -o src/parser/document.ts src/parser/document.pegjs"
   },
   "files": [
     "lib/",
