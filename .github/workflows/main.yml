@@ -26,5 +26,8 @@ jobs:
       - name: Install
         run: npm ci && npx lerna bootstrap
       
-      - name: Run tests
-        run: npm run build && npm run test
+      - name: Build
+        run: npm run build
+
+      - name: Run Tests
+        run: npm run test
