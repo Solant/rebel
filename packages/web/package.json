@@ -19,16 +19,16 @@
   "homepage": "https://github.com/Solant/rebel",
   "bugs": "https://github.com/Solant/rebel/issues",
   "dependencies": {
-    "@nuxt/typescript-runtime": "^0.3.8",
+    "@nuxt/typescript-runtime": "^2.0.0",
     "@rebel-struct/core": "^0.2.2",
     "@rebel-struct/target-ts": "^0.2.2"
   },
   "devDependencies": {
-    "@nuxt/typescript-build": "^0.1.11",
-    "@nuxtjs/tailwindcss": "^1.1.2",
-    "@vue/composition-api": "^0.2.1",
-    "nuxt": "^2.11.0",
-    "typescript": "^3.5.3",
+    "@nuxt/typescript-build": "^2.0.3",
+    "@nuxtjs/tailwindcss": "^3.1.0",
+    "@vue/composition-api": "^1.0.0-beta.17",
+    "nuxt": "^2.14.7",
+    "typescript": "^4.0.3",
     "vue-codemirror": "^4.0.6"
   }
 }
