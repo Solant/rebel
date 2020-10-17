@@ -43,10 +43,10 @@
 
 <script lang="ts">
     import { compile } from '@rebel-struct/core';
-    import { createComponent, reactive, ref } from '@vue/composition-api';
+    import { defineComponent, reactive, ref } from '@vue/composition-api';
     import ts from '@rebel-struct/target-ts';
 
-    export default createComponent({
+    export default defineComponent({
         setup () {
             let input = ref(
 `
